@@ -4,7 +4,8 @@
  *   npm run dev
  *   npm run shots -- /:index /states:states
  *
- * Each argument is "<route>:<name>". Files land in screenshots/<name>.png. Console errors,
+ * Each argument is "<route>:<name>". Files land in screenshots/<name>.png (or OUT_DIR). VIEWPORT
+ * sets the CSS viewport, e.g. VIEWPORT=320x568; it defaults to the 390 x 844 design frame. Console errors,
  * page errors and failed requests are reported per route, so a screen that renders but
  * misbehaves does not pass quietly.
  */
@@ -15,7 +16,8 @@ import { dirname, join } from "node:path";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const BASE = process.env.BASE ?? "http://localhost:3000";
-const OUT = join(ROOT, "screenshots");
+const OUT = join(ROOT, process.env.OUT_DIR ?? "screenshots");
+const [VIEW_W, VIEW_H] = (process.env.VIEWPORT ?? "390x844").split("x").map(Number);
 
 const targets = process.argv.slice(2).map((arg) => {
   const at = arg.lastIndexOf(":");
@@ -47,7 +49,7 @@ await waitForServer();
 
 // SwiftShader gives headless Chromium a software GPU, so the WebGL map renders in screenshots.
 const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
-const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+const page = await browser.newPage({ viewport: { width: VIEW_W, height: VIEW_H }, deviceScaleFactor: 2 });
 
 const problems = [];
 page.on("console", (msg) => {
@@ -66,10 +68,11 @@ for (const { route, name } of targets) {
   // The Next.js dev-tools badge is an overlay, not part of the design.
   await page.addStyleTag({ content: "nextjs-portal { display: none !important; }" });
   await page.waitForTimeout(Number(process.env.WAIT ?? 500));
-  // FULL=0 captures just the 390 x 844 viewport, matching a Figma frame that clips its content.
+  // FULL=0 captures just the viewport, matching a Figma frame that clips its content.
   await page.screenshot({ path: join(OUT, `${name}.png`), fullPage: process.env.FULL !== "0" });
   const height = await page.evaluate(() => document.documentElement.scrollHeight);
-  console.log(`${route} -> screenshots/${name}.png  status=${res?.status()} height=${height}`);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  console.log(`${route} -> ${process.env.OUT_DIR ?? "screenshots"}/${name}.png  status=${res?.status()} height=${height}${overflow > 0 ? `  OVERFLOW-X=${overflow}px` : ""}`);
   for (const problem of problems) {
     failed = true;
     console.log(`   ! ${problem}`);

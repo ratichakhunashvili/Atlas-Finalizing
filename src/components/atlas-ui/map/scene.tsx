@@ -18,8 +18,13 @@ export type MapScene = {
   you: boolean;
   /** Draws the walking route from Hotel A to this destination. */
   route?: RouteId;
-  /** How much of the bottom of the screen the screen's sheet covers, so Mapbox's attribution stays visible. */
+  /**
+   * Phone layout: how much of the bottom of the screen the screen's sheet (and the bar) covers,
+   * so Mapbox's attribution stays visible and routes are framed above it.
+   */
   bottomInset: number;
+  /** In the wide layout this screen's sheet becomes a side panel on the left of the map. */
+  panel: boolean;
   /** Route screens show a flat map; the home screen honours the 2D/3D toggle. */
   allowTilt: boolean;
 };

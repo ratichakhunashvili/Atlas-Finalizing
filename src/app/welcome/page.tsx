@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { AtlasAsset, AtlasIcon, AtlasLogo } from "@/components/atlas-ui/asset";
 import { AtlasButton, AtlasLink } from "@/components/atlas-ui/ui";
 
 /* Welcome · Welcome (after hotel QR) — Figma frame 1:690. */
+
+export const metadata: Metadata = { title: "Welcome" };
 
 const STEPS = [
   "Choose your interests and free time",
@@ -11,15 +14,21 @@ const STEPS = [
 
 export default function WelcomePage() {
   return (
-    <main className="relative flex min-h-[100dvh] w-full flex-col items-start bg-atlas-teal">
+    <main className="atlas-dark relative flex min-h-[100dvh] w-full flex-col items-center bg-atlas-teal">
       <AtlasAsset
         src="/atlas-ui/pattern-beige-wave.svg"
         width={390}
         height={139}
-        className="pointer-events-none absolute left-0 top-[196px]"
+        className="pointer-events-none absolute left-0 top-[196px] wide:hidden"
+      />
+      {/* Wider screens repeat the same artwork across the width rather than stretching it. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-[196px] hidden h-[139px] bg-repeat-x wide:block short:top-[24px]"
+        style={{ backgroundImage: "url(/atlas-ui/pattern-beige-wave.svg)" }}
       />
 
-      <div className="relative flex w-full flex-col items-start gap-[16px] px-[24px] pt-[72px]">
+      <div className="relative flex w-full max-w-[560px] flex-col items-start gap-[16px] px-[24px] pt-[calc(72px+env(safe-area-inset-top))] short:pt-[24px]">
         <AtlasLogo tone="light" width={66} height={76} />
         <div className="flex flex-col items-start gap-[4px]">
           <p className="font-grotesk text-[20px] font-bold leading-[26px] tracking-[4.8px] text-atlas-paper">ATLAS</p>
@@ -29,7 +38,7 @@ export default function WelcomePage() {
 
       <div aria-hidden className="min-h-px flex-1" />
 
-      <div className="relative flex w-full flex-col items-start gap-[14px] px-[24px]">
+      <div className="relative flex w-full max-w-[560px] flex-col items-start gap-[14px] px-[24px]">
         <div className="flex items-center gap-[8px] rounded-[14px] bg-atlas-paper/12 px-[12px] py-[6px]">
           <AtlasIcon src="/atlas-ui/icon-home-light.svg" size={16} />
           <p className="font-manrope text-[13px] leading-[18px] text-atlas-paper">Exploring with Hotel A</p>
@@ -43,7 +52,7 @@ export default function WelcomePage() {
         </p>
       </div>
 
-      <ol className="relative flex w-full flex-col items-start gap-[10px] px-[24px] pt-[24px]">
+      <ol className="relative flex w-full max-w-[560px] flex-col items-start gap-[10px] px-[24px] pt-[24px]">
         {STEPS.map((step, index) => (
           <li key={step} className="flex items-center gap-[12px]">
             <span className="flex size-[28px] shrink-0 items-center justify-center rounded-[14px] border border-atlas-beige font-manrope text-[13px] leading-[18px] text-atlas-paper">
@@ -54,7 +63,7 @@ export default function WelcomePage() {
         ))}
       </ol>
 
-      <div className="relative flex w-full flex-col items-start gap-[10px] px-[24px] py-[28px]">
+      <div className="relative flex w-full max-w-[560px] flex-col items-start gap-[10px] px-[24px] pb-[calc(28px+env(safe-area-inset-bottom))] pt-[28px]">
         <AtlasButton to="SignIn" tone="light">
           Get started
         </AtlasButton>

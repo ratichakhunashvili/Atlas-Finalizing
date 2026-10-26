@@ -53,7 +53,8 @@ export function AtlasLink({
   );
 }
 
-const BUTTON = "flex h-[52px] w-full items-center justify-center gap-[8px] rounded-[14px] font-manrope text-[16px] font-semibold leading-[22px]";
+const BUTTON =
+  "flex min-h-[52px] w-full shrink-0 items-center justify-center gap-[8px] rounded-[14px] px-[12px] py-[4px] text-center font-manrope text-[16px] font-semibold leading-[22px]";
 
 export type ButtonTone = "primary" | "outline" | "light";
 
@@ -72,6 +73,7 @@ export function AtlasButton({
   children,
   className = "",
   type: buttonType = "button",
+  onClick,
 }: {
   to?: ScreenKey;
   tone?: ButtonTone;
@@ -80,12 +82,13 @@ export function AtlasButton({
   children: ReactNode;
   className?: string;
   type?: "button" | "submit";
+  onClick?: () => void;
 }) {
   const classes = `${BUTTON} ${TONES[tone]} ${className}`;
   const content = (
     <>
       {icon ? <AtlasIcon src={icon} size={iconSize} className="shrink-0" /> : null}
-      <span>{children}</span>
+      <span className="min-w-0 [overflow-wrap:anywhere]">{children}</span>
     </>
   );
   if (to) {
@@ -96,7 +99,7 @@ export function AtlasButton({
     );
   }
   return (
-    <button type={buttonType} className={classes}>
+    <button type={buttonType} onClick={onClick} className={classes}>
       {content}
     </button>
   );
@@ -107,12 +110,14 @@ export function AtlasTextLink({
   to,
   children,
   className = "",
+  onClick,
 }: {
   to?: ScreenKey;
   children: ReactNode;
   className?: string;
+  onClick?: () => void;
 }) {
-  const classes = `flex h-[44px] w-full items-center justify-center font-manrope text-[15px] font-semibold leading-[20px] text-atlas-teal ${className}`;
+  const classes = `flex h-[44px] w-full shrink-0 items-center justify-center font-manrope text-[15px] font-semibold leading-[20px] text-atlas-teal ${className}`;
   if (to) {
     return (
       <AtlasLink to={to} className={classes}>
@@ -121,7 +126,7 @@ export function AtlasTextLink({
     );
   }
   return (
-    <button type="button" className={classes}>
+    <button type="button" onClick={onClick} className={classes}>
       {children}
     </button>
   );
@@ -218,7 +223,9 @@ export function AtlasPoints({ items, gap = 12 }: { items: { icon: string; text: 
 
 /**
  * Full-height flow screen (sign in, permissions, messages): 20px gutters, 16px top, 28px
- * bottom, with a spacer that pushes the actions to the bottom edge.
+ * bottom, with a spacer that pushes the actions to the bottom edge. On tablets and desktops the
+ * same column becomes a centred card on Warm Sand, so forms keep a readable measure instead of
+ * stretching edge to edge. Safe-area insets keep it clear of notches and home indicators.
  */
 export function FlowScreen({
   children,
@@ -230,11 +237,13 @@ export function FlowScreen({
   className?: string;
 }) {
   return (
-    <div
-      className={`relative flex min-h-[100dvh] w-full flex-col items-start bg-atlas-paper px-[20px] pb-[28px] pt-[16px] ${className}`}
-      style={{ gap }}
-    >
-      {children}
+    <div className="flex min-h-[100dvh] w-full justify-center md:bg-atlas-dune md:px-[24px] md:py-[32px]">
+      <div
+        className={`relative flex min-h-[100dvh] w-full max-w-[560px] flex-col items-start bg-atlas-paper px-[20px] pb-[calc(28px+env(safe-area-inset-bottom))] pt-[calc(16px+env(safe-area-inset-top))] md:min-h-[min(844px,calc(100dvh-64px))] md:rounded-[24px] md:border md:border-atlas-beige md:px-[32px] md:shadow-[0px_10px_40px_0px_rgba(28,41,41,0.08)] ${className}`}
+        style={{ gap }}
+      >
+        {children}
+      </div>
     </div>
   );
 }

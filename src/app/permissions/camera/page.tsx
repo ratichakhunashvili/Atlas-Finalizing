@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { PermissionScreen } from "@/components/atlas-ui/permission-screen";
 
 /* PermCamera · Camera permission — Figma frame 1:841. */
+
+export const metadata: Metadata = { title: "Camera permission" };
 
 export default function CameraPermissionPage() {
   return (

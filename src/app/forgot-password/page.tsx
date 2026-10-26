@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { AtlasBackButton, AtlasButton, AtlasField, FlowScreen, Spacer, type } from "@/components/atlas-ui/ui";
 
 /* ForgotPassword · Reset password — Figma frame 1:1271. */
+
+export const metadata: Metadata = { title: "Reset your password" };
 
 export default function ForgotPasswordPage() {
   return (

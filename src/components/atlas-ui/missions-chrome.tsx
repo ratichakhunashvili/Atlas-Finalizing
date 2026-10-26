@@ -1,4 +1,8 @@
+"use client";
+
 import { AtlasIcon } from "./asset";
+import { useDemoState } from "./demo/demo-store";
+import { preferencesSummary } from "./demo/live";
 import { HOTEL } from "./fixtures";
 import { AtlasLink } from "./ui";
 
@@ -6,10 +10,13 @@ import { AtlasLink } from "./ui";
  * Chrome shared by the Missions tab screens (map, list, my plan, no match).
  *
  * Context header (366 wide): hotel button ⇒ Stay, hotel name and preferences ⇒ Preferences,
- * edit ⇒ Preferences. Explore / My plan: the segmented switch under it.
+ * edit ⇒ Preferences. The subtitle is the guest's own choices from Preferences (demo state).
+ * Explore / My plan: the segmented switch under it.
  */
 
-export function ContextHeader({ summary = HOTEL.summary, className = "" }: { summary?: string; className?: string }) {
+export function ContextHeader({ summary: override, className = "" }: { summary?: string; className?: string }) {
+  const { preferences } = useDemoState();
+  const summary = override ?? preferencesSummary(preferences);
   return (
     <div className={`flex w-full items-center gap-[10px] rounded-[14px] border border-atlas-beige bg-atlas-paper p-[4px] ${className}`}>
       <AtlasLink
@@ -21,7 +28,7 @@ export function ContextHeader({ summary = HOTEL.summary, className = "" }: { sum
       </AtlasLink>
       <AtlasLink to="Preferences" className="flex h-[44px] min-w-0 flex-1 flex-col items-start justify-center gap-px text-left">
         <span className="font-grotesk text-[15px] font-bold leading-[19px] text-atlas-teal">{HOTEL.name}</span>
-        <span className="truncate font-manrope text-[12px] leading-[16px] text-atlas-slate">{summary}</span>
+        <span className="w-full truncate font-manrope text-[12px] leading-[16px] text-atlas-slate">{summary}</span>
       </AtlasLink>
       <AtlasLink
         to="Preferences"

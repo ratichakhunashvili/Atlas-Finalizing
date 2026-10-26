@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { PermissionScreen } from "@/components/atlas-ui/permission-screen";
 
 /* PermLocation · Location permission — Figma frame 1:810. */
+
+export const metadata: Metadata = { title: "Location permission" };
 
 export default function LocationPermissionPage() {
   return (

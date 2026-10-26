@@ -1,7 +1,12 @@
-import { MyPlan, PLAN_STATES } from "@/components/atlas-ui/my-plan";
+import type { Metadata } from "next";
+import { MyPlanScreen } from "@/components/atlas-ui/my-plan";
 
-/* MyPlan · Missions › My plan — Figma frame 1:489. */
+/*
+ * MyPlan · Missions › My plan — Figma frame 1:489. The live demo plan.
+ */
+
+export const metadata: Metadata = { title: "My plan" };
 
 export default function Page() {
-  return <MyPlan state={PLAN_STATES.base} />;
+  return <MyPlanScreen />;
 }

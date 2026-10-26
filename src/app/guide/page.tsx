@@ -1,5 +1,7 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { AtlasIcon, AtlasLogo } from "@/components/atlas-ui/asset";
+import { DemoResetButton } from "@/components/atlas-ui/demo/reset-button";
 import { screenHref, type ScreenKey } from "@/components/atlas-ui/screens";
 
 /*
@@ -78,6 +80,20 @@ const GROUPS: readonly IndexGroup[] = [
     ],
   },
   {
+    label: "Design-review states",
+    links: [
+      { title: "My plan, stop replaced", subtitle: "Opens this state and sets the demo plan to it", screen: "MyPlanReplaced" },
+      { title: "My plan, stop removed", subtitle: "Opens this state and sets the demo plan to it", screen: "MyPlanRemoved" },
+      { title: "My plan, spa added", subtitle: "Runs over: the time warning", screen: "MyPlanAddedSpa" },
+      { title: "My plan, pool added", subtitle: "Runs over: the time warning", screen: "MyPlanAddedPool" },
+      { title: "My plan, Attraction 1 added", subtitle: "Runs over: the time warning", screen: "MyPlanAddedA1" },
+      { title: "My plan, Partner Place 4 added", subtitle: "Runs over: the time warning", screen: "MyPlanAddedP4" },
+      { title: "Remove a stop", subtitle: "The confirmation dialog", screen: "RepairConfirm" },
+      { title: "Delete account", subtitle: "The confirmation dialog", screen: "PrivacyDelete" },
+      { title: "Terms and privacy, signed out", subtitle: "Placeholders until approved text exists", screen: "PrivacyPublic" },
+    ],
+  },
+  {
     label: "Reference",
     links: [
       { title: "Bottom bar motion", subtitle: "Click the tabs: the notch slides", screen: "NavLiquid" },
@@ -115,9 +131,11 @@ function IndexRow({ title, subtitle, screen }: IndexLink) {
   );
 }
 
+export const metadata: Metadata = { title: "Prototype guide" };
+
 export default function AtlasUiIndexPage() {
   return (
-    <div className="flex min-h-[100dvh] flex-col items-start gap-[22px] bg-atlas-paper px-[16px] pb-[118px] pt-[24px]">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-[720px] flex-col items-start gap-[22px] bg-atlas-paper px-[16px] pb-[118px] pt-[calc(24px+env(safe-area-inset-top))]">
       <header className="flex w-full flex-col items-start gap-[8px]">
         <AtlasLogo tone="teal" width={42} height={48} />
         <p className="font-grotesk text-[11px] font-medium uppercase leading-[14px] tracking-[0.88px] text-atlas-slate">
@@ -129,6 +147,17 @@ export default function AtlasUiIndexPage() {
           Scan, and Profile.
         </p>
       </header>
+
+      <section aria-labelledby="demo-heading" className="flex w-full flex-col items-start gap-[8px] rounded-[16px] border border-dashed border-atlas-umber p-[14px]">
+        <h2 id="demo-heading" className="font-grotesk text-[16px] font-bold leading-[20px] text-atlas-teal">
+          Prototype demo
+        </h2>
+        <p className="w-full font-manrope text-[14px] leading-[21px] text-atlas-ink">
+          Your choices, plan, check-ins and achievements are kept in this browser only, so the screens agree with each other.
+          Nothing is sent anywhere and there are no accounts. Design-review states below set the demo plan to the state they show.
+        </p>
+        <DemoResetButton />
+      </section>
 
       {GROUPS.map((group) => (
         <section key={group.label} className="flex w-full flex-col items-start">

@@ -7,6 +7,7 @@ import { HOTEL_LNGLAT, MAP_CENTER, DESIGN_ZOOM, PLACE_LNGLAT, YOU_LNGLAT, type L
 import { markerImageId, rasterizeMarkers, registerMarkers } from "./markers";
 import { addBuildingExtrusions, applyAtlasPalette, MAP_STYLE_URL } from "./style";
 import { useSceneContext, type MapScene } from "./scene";
+import { sidePanelWidth, useReducedMotion, useWideLayout } from "../use-layout";
 import routes from "./routes.json";
 
 /*
@@ -70,6 +71,8 @@ export function AtlasMap() {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState<string | null>(TOKEN ? null : "missing-token");
   const { scene, placeClickRef, camera, dimension } = useSceneContext();
+  const wide = useWideLayout();
+  const reducedMotion = useReducedMotion();
 
   // Create the map once.
   useEffect(() => {
@@ -165,7 +168,15 @@ export function AtlasMap() {
     if (!map || !ready || !scene) return;
     (map.getSource("atlas-places") as GeoJSONSource | undefined)?.setData(markerFeatures(scene));
     (map.getSource("atlas-route") as GeoJSONSource | undefined)?.setData(routeFeature(scene));
-    containerRef.current?.style.setProperty("--atlas-map-inset", `${scene.bottomInset}px`);
+    // Beside a side panel (wide layout) the camera centre and Mapbox's logo move right of the
+    // panel; under a phone sheet the attribution sits above the sheet.
+    const panelEdge = wide && scene.panel ? sidePanelWidth() + 32 : 0;
+    map.setPadding({ left: panelEdge, top: 0, right: 0, bottom: 0 });
+    containerRef.current?.style.setProperty(
+      "--atlas-map-inset",
+      wide ? "0px" : `calc(${scene.bottomInset}px + env(safe-area-inset-bottom))`
+    );
+    containerRef.current?.style.setProperty("--atlas-map-left-inset", `${panelEdge}px`);
 
     const line = scene.route ? ROUTE_LINES[scene.route] : undefined;
     if (!line && framedRouteRef.current) {
@@ -181,36 +192,50 @@ export function AtlasMap() {
           [Math.min(...lngs), Math.min(...lats)],
           [Math.max(...lngs), Math.max(...lats)],
         ],
-        { padding: { top: 140, bottom: scene.bottomInset + 48, left: 48, right: 72 }, pitch: 0, duration: 0, maxZoom: 16.5 }
+        {
+          padding: wide
+            ? { top: 48, bottom: 48, left: panelEdge + 48, right: 72 }
+            : { top: 140, bottom: scene.bottomInset + 48, left: 48, right: 72 },
+          pitch: 0,
+          duration: 0,
+          maxZoom: 16.5,
+        }
       );
     }
-  }, [scene, ready]);
+  }, [scene, ready, wide]);
 
   // 2D / 3D.
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready || !scene) return;
     const tilted = scene.allowTilt && dimension === "3D";
-    map.easeTo({ pitch: tilted ? TILT : 0, duration: 600 });
+    map.easeTo({ pitch: tilted ? TILT : 0, duration: reducedMotion ? 0 : 600 });
     if (map.getLayer("atlas-buildings-3d")) map.setLayoutProperty("atlas-buildings-3d", "visibility", tilted ? "visible" : "none");
-  }, [dimension, ready, scene]);
+  }, [dimension, ready, scene, reducedMotion]);
 
   // Camera requests from the map controls.
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready || camera.seq === 0) return;
     const center = camera.target === "you" ? YOU_LNGLAT : camera.target === "hotel" ? HOTEL_LNGLAT : MAP_CENTER;
-    map.flyTo({ center, zoom: camera.target === "design" ? DESIGN_ZOOM : 15.2, duration: 800 });
-  }, [camera, ready]);
+    const options = { center, zoom: camera.target === "design" ? DESIGN_ZOOM : 15.2 };
+    if (reducedMotion) map.jumpTo(options);
+    else map.flyTo({ ...options, duration: 800 });
+  }, [camera, ready, reducedMotion]);
 
   return (
     <div className="atlas-map absolute inset-0 bg-atlas-dune">
       {/* mapbox-gl.css makes the container position: relative, so size it explicitly. */}
       <div ref={containerRef} className="h-full w-full" />
+      {!ready && !failed ? (
+        <p role="status" className="absolute left-1/2 top-[38%] w-[240px] -translate-x-1/2 text-center font-manrope text-[13px] leading-[18px] text-atlas-slate">
+          Loading the map…
+        </p>
+      ) : null}
       {failed ? (
-        <p className="absolute left-1/2 top-1/2 w-[280px] -translate-x-1/2 -translate-y-1/2 text-center font-manrope text-[13px] leading-[18px] text-atlas-slate">
+        <p role="alert" className="absolute left-1/2 top-1/2 w-[280px] -translate-x-1/2 -translate-y-1/2 text-center font-manrope text-[13px] leading-[18px] text-atlas-slate">
           {failed === "missing-token"
-            ? "The map needs a Mapbox token. Add NEXT_PUBLIC_MAPBOX_TOKEN to .env.local."
+            ? "The map needs a Mapbox token. Configure NEXT_PUBLIC_MAPBOX_TOKEN in your environment."
             : "The map could not load. Check the Mapbox token and your connection."}
         </p>
       ) : null}

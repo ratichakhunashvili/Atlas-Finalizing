@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   AtlasBackButton,
   AtlasBadge,
@@ -9,6 +10,8 @@ import {
 } from "@/components/atlas-ui/ui";
 
 /* NoStay · No active stay — Figma frame 1:1225. */
+
+export const metadata: Metadata = { title: "No active stay" };
 
 export default function NoStayPage() {
   return (

@@ -1,23 +1,29 @@
 import type { ReactNode } from "react";
 import { AtlasAsset, AtlasIcon } from "./asset";
+import { HistoryBackButton } from "./navigation";
 import { ReadMore } from "./read-more";
 import type { ScreenKey } from "./screens";
-import { AtlasBackButton, AtlasButton, AtlasLink } from "./ui";
+import { AtlasLink } from "./ui";
 
 /*
  * Building blocks of the place detail screens: Detail (1:280), DetailP1 (1:1799), DetailP4
  * (1:1867), FacilityDetail (1:872), FacilityPool (1:1933) and AttractionDetail (1:925).
  *
- * Every detail screen is a 176px photo, a body of sections and an actions bar pinned to the
- * bottom. In Figma the body is clipped at the actions bar; here it scrolls under it instead,
- * so nothing below the fold is lost.
+ * Phone: a 176px photo, a body of sections and an actions bar pinned to the bottom. In Figma the
+ * body is clipped at the actions bar; here it scrolls under it instead, so nothing below the fold
+ * is lost. Wide layout: the photo fills the left half and the details scroll beside it, with the
+ * actions pinned to the bottom of their column. Plan status, achievements and the main action
+ * come from the demo state (detail-live.tsx).
  */
 
-export function DetailScreen({ children, actions }: { children: ReactNode; actions: ReactNode }) {
+export function DetailScreen({ hero, children, actions }: { hero: ReactNode; children: ReactNode; actions: ReactNode }) {
   return (
-    <main className="relative flex min-h-[100dvh] w-full flex-col bg-atlas-paper">
-      <div className="flex-1">{children}</div>
-      <div className="sticky bottom-0 z-10">{actions}</div>
+    <main className="relative flex min-h-[100dvh] w-full flex-col bg-atlas-paper wide:grid wide:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
+      <div className="wide:sticky wide:top-0 wide:h-[100dvh]">{hero}</div>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex-1">{children}</div>
+        <div className="sticky bottom-0 z-10">{actions}</div>
+      </div>
     </main>
   );
 }
@@ -28,13 +34,14 @@ export function DetailHero({
   counter,
 }: {
   photo: { src: string; width: number; height: number };
+  /** Where back goes when the place was opened directly; otherwise it returns to the previous page. */
   back?: ScreenKey;
   counter?: string;
 }) {
   return (
-    <div className="relative h-[176px] w-full overflow-hidden bg-atlas-beige">
+    <div className="relative h-[calc(176px+env(safe-area-inset-top))] w-full overflow-hidden bg-atlas-beige wide:h-full">
       <AtlasAsset src={photo.src} width={photo.width} height={photo.height} className="absolute inset-0 size-full object-cover" />
-      <AtlasBackButton to={back} className="absolute left-[12px] top-[12px]" />
+      <HistoryBackButton fallback={back} className="absolute left-[12px] top-[calc(12px+env(safe-area-inset-top))]" />
       {counter ? (
         <p className="absolute bottom-[10px] right-[12px] flex items-center justify-center rounded-[10px] bg-atlas-paper px-[9px] py-[3px] font-manrope text-[12px] leading-[16px] text-atlas-ink">
           {counter}
@@ -89,7 +96,7 @@ export function ApprovalRow({ chip }: { chip: ReactNode }) {
 }
 
 export function PlanChip({ tone, to, children }: { tone: "teal" | "sand"; to?: ScreenKey; children: string }) {
-  const className = `flex items-center rounded-[12px] px-[10px] py-[3px] font-manrope text-[12px] font-semibold leading-[16px] ${
+  const className = `atlas-hit flex items-center rounded-[12px] px-[10px] py-[3px] font-manrope text-[12px] font-semibold leading-[16px] ${
     tone === "teal" ? "bg-atlas-teal text-atlas-paper" : "bg-atlas-sand text-atlas-teal"
   }`;
   if (!to) return <span className={`${className} !text-atlas-ink`}>{children}</span>;
@@ -119,7 +126,7 @@ export function FactStrip({ facts }: { facts: Fact[] }) {
       {facts.map((fact, index) => (
         <div key={fact.label} className="flex min-w-0 flex-1 items-start">
           {index > 0 ? <span aria-hidden className="h-[46px] w-px shrink-0 bg-atlas-beige" /> : null}
-          <div className="flex min-w-0 flex-1 flex-col items-start gap-px whitespace-nowrap px-[10px] py-[8px]">
+          <div className="flex min-w-0 flex-1 flex-col items-start gap-px px-[10px] py-[8px]">
             <dt className="font-manrope text-[12px] leading-[16px] text-atlas-slate">{fact.label}</dt>
             <dd className="font-manrope text-[15px] font-semibold leading-[20px] text-atlas-ink">{fact.value}</dd>
           </div>
@@ -129,12 +136,12 @@ export function FactStrip({ facts }: { facts: Fact[] }) {
   );
 }
 
-/** Facility and attraction facts: separate 114px cards. */
+/** Facility and attraction facts: separate 114px cards, narrowing on small screens. */
 export function FactCards({ facts }: { facts: Fact[] }) {
   return (
-    <dl className="flex w-full items-start gap-[8px] whitespace-nowrap">
+    <dl className="flex w-full items-start gap-[8px]">
       {facts.map((fact) => (
-        <div key={fact.label} className="flex w-[114px] shrink-0 flex-col items-start gap-px rounded-[12px] border border-atlas-beige p-[10px]">
+        <div key={fact.label} className="flex min-w-0 max-w-[114px] flex-1 flex-col items-start gap-px rounded-[12px] border border-atlas-beige p-[10px]">
           <dt className="font-manrope text-[12px] leading-[16px] text-atlas-slate">{fact.label}</dt>
           <dd className="font-manrope text-[15px] font-semibold leading-[20px] text-atlas-ink">{fact.value}</dd>
           {fact.note ? <dd className="font-manrope text-[12px] leading-[16px] text-atlas-slate">{fact.note}</dd> : null}
@@ -185,7 +192,7 @@ export function InfoRows({ rows }: { rows: { icon: string; label: string; value:
           className={`flex h-[48px] w-full items-center gap-[10px] py-[6px] ${index < rows.length - 1 ? "border-b border-atlas-beige" : ""}`}
         >
           <AtlasIcon src={row.icon} size={18} className="shrink-0" />
-          <div className="flex min-w-0 flex-1 flex-col items-start gap-px whitespace-nowrap">
+          <div className="flex min-w-0 flex-1 flex-col items-start gap-px">
             <p className="font-manrope text-[14px] font-semibold leading-[19px] text-atlas-ink">{row.label}</p>
             <p className="font-manrope text-[13px] leading-[18px] text-atlas-slate">{row.value}</p>
           </div>
@@ -214,7 +221,7 @@ export function PartnerAchievement({
           <AtlasIcon src="/atlas-ui/icon-ach-light-18.svg" size={18} />
         </span>
         <span className="flex min-w-0 flex-1 flex-col items-start gap-px">
-          <span className="whitespace-nowrap font-grotesk text-[15px] font-bold leading-[19px] text-atlas-teal">{title}</span>
+          <span className="font-grotesk text-[15px] font-bold leading-[19px] text-atlas-teal">{title}</span>
           <span className="w-full font-manrope text-[13px] leading-[18px] text-atlas-slate">{line}</span>
         </span>
         {action}
@@ -224,56 +231,5 @@ export function PartnerAchievement({
   );
 }
 
-const SMALL_ACTION = "flex h-[44px] shrink-0 items-center gap-[6px] rounded-[12px] px-[12px] font-manrope text-[13px] font-semibold leading-[18px]";
-
-export function ScanAction({ enabled }: { enabled: boolean }) {
-  if (!enabled) {
-    return (
-      <span aria-disabled="true" className={`${SMALL_ACTION} bg-atlas-mist text-atlas-ink`}>
-        <AtlasIcon src="/atlas-ui/icon-qr-ink-16.svg" size={16} />
-        Scan
-      </span>
-    );
-  }
-  return (
-    <AtlasLink to="PermCamera" className={`${SMALL_ACTION} bg-atlas-teal text-atlas-paper`}>
-      <AtlasIcon src="/atlas-ui/icon-qr-light-16.svg" size={16} />
-      Scan
-    </AtlasLink>
-  );
-}
-
-export function ViewAction({ to }: { to: ScreenKey }) {
-  return (
-    <AtlasLink to={to} className={`${SMALL_ACTION} border border-atlas-teal text-atlas-teal`}>
-      View
-    </AtlasLink>
-  );
-}
-
-/** Bottom actions bar: a square secondary action beside the primary button. */
-export function DetailActions({
-  secondary,
-  primary,
-  tall = false,
-}: {
-  secondary: { to: ScreenKey; icon: string; iconSize: number; label: string };
-  primary: { to: ScreenKey; label: string; icon?: string };
-  /** Facility and attraction bars are 88 tall with a 56 x 60 secondary; partner bars 80 with 52 x 52. */
-  tall?: boolean;
-}) {
-  return (
-    <div className={`flex w-full items-start gap-[10px] border-t border-atlas-beige bg-atlas-paper px-[16px] pb-[18px] pt-[10px] ${tall ? "h-[88px]" : "h-[80px]"}`}>
-      <AtlasLink
-        to={secondary.to}
-        label={secondary.label}
-        className={`flex shrink-0 items-center justify-center rounded-[14px] border border-atlas-teal ${tall ? "h-[60px] w-[56px]" : "size-[52px]"}`}
-      >
-        <AtlasIcon src={secondary.icon} size={secondary.iconSize} />
-      </AtlasLink>
-      <AtlasButton to={primary.to} icon={primary.icon} className="min-w-0 flex-1">
-        {primary.label}
-      </AtlasButton>
-    </div>
-  );
-}
+export const SMALL_ACTION =
+  "flex h-[44px] shrink-0 items-center gap-[6px] rounded-[12px] px-[12px] font-manrope text-[13px] font-semibold leading-[18px]";

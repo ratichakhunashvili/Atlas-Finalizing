@@ -1,51 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { setPreferences, useDemoState } from "./demo/demo-store";
+import { DAY_START, INTERESTS, PRICE_OPTIONS, TIME_OPTIONS, clock, hoursOf, type Interest } from "./demo/plan-model";
 import { AtlasBackButton, AtlasButton, AtlasTextLink, type } from "./ui";
 
 /*
  * Preferences · Plan my time — Figma frame 1:590, with the Time picker (1:62), Interest chip
- * (1:115) and Price picker (1:120) components. Time and price pick one option; interests are
- * multi-select. "Starting" updates its return time from the chosen duration.
+ * (1:115) and Price picker (1:120) components. Time and price pick one option (native radio
+ * groups, so arrow keys work); interests are multi-select. "Starting" updates its return time
+ * from the chosen duration.
  *
- * Choices are local for now; "Plan my time" is where the planner request will be sent.
+ * The choices are kept in the demo state, so Plan building, Plan ready, My plan and the context
+ * header all use what the guest picked. "Plan my time" runs the prototype's planning model;
+ * in the product this is where the request goes to the server.
  */
 
-const TIMES = ["1 h", "2 h", "3 h", "4 h+"] as const;
-const BACK_BY: Record<(typeof TIMES)[number], string> = { "1 h": "17:00", "2 h": "18:00", "3 h": "19:00", "4 h+": "20:00" };
-const INTERESTS = ["Food", "Culture", "Nature", "Wellness", "History", "Art", "Nightlife", "Shopping"] as const;
-const PRICES = ["Any", "Budget", "Moderate", "Luxury"] as const;
-
-const OPTION = "flex h-[48px] min-w-0 flex-1 items-center justify-center rounded-[12px] border font-manrope font-semibold";
+const OPTION =
+  "flex h-[48px] min-w-0 flex-1 cursor-pointer items-center justify-center rounded-[12px] border font-manrope font-semibold has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-atlas-teal";
 
 function Segmented<T extends string>({
+  name,
   options,
   value,
   onChange,
-  label,
+  labelId,
   textClass,
 }: {
+  name: string;
   options: readonly T[];
   value: T;
   onChange: (value: T) => void;
-  label: string;
+  labelId: string;
   textClass: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="flex w-full items-start gap-[8px]">
+    <div role="radiogroup" aria-labelledby={labelId} className="flex w-full items-start gap-[8px]">
       {options.map((option) => {
         const selected = option === value;
         return (
-          <button
+          <label
             key={option}
-            type="button"
-            role="radio"
-            aria-checked={selected}
-            onClick={() => onChange(option)}
             className={`${OPTION} ${textClass} ${selected ? "border-atlas-teal bg-atlas-teal text-atlas-paper" : "border-atlas-beige bg-atlas-paper text-atlas-teal"}`}
           >
+            <input type="radio" name={name} value={option} checked={selected} onChange={() => onChange(option)} className="sr-only" />
             {option}
-          </button>
+          </label>
         );
       })}
     </div>
@@ -55,16 +54,18 @@ function Segmented<T extends string>({
 const SECTION_TITLE = "font-grotesk text-[17px] font-bold leading-[22px] text-atlas-teal";
 
 export function PreferencesForm() {
-  const [time, setTime] = useState<(typeof TIMES)[number]>("2 h");
-  const [interests, setInterests] = useState<string[]>(["Food", "Culture"]);
-  const [price, setPrice] = useState<(typeof PRICES)[number]>("Moderate");
+  const { preferences } = useDemoState();
+  const { time, interests, price } = preferences;
 
-  const toggleInterest = (interest: string) =>
-    setInterests((current) => (current.includes(interest) ? current.filter((item) => item !== interest) : [...current, interest]));
+  const toggleInterest = (interest: Interest) =>
+    setPreferences({
+      ...preferences,
+      interests: interests.includes(interest) ? interests.filter((item) => item !== interest) : [...interests, interest],
+    });
 
   return (
     <main className="relative flex min-h-[100dvh] w-full flex-col bg-atlas-paper">
-      <div className="flex w-full flex-1 flex-col items-start gap-[22px] px-[16px] pb-[24px] pt-[16px]">
+      <div className="mx-auto flex w-full max-w-[640px] flex-1 flex-col items-start gap-[22px] px-[16px] pb-[24px] pt-[calc(16px+env(safe-area-inset-top))]">
         <div className="flex w-full items-center gap-[8px]">
           <AtlasBackButton to="Main" />
           <p className="font-manrope text-[13px] leading-[18px] text-atlas-slate">Hotel A</p>
@@ -78,12 +79,23 @@ export function PreferencesForm() {
         </div>
 
         <section className="flex w-full flex-col items-start gap-[10px]">
-          <h2 className={SECTION_TITLE}>How much time do you have?</h2>
+          <h2 id="pref-time" className={SECTION_TITLE}>
+            How much time do you have?
+          </h2>
           <div className="flex w-full flex-col items-start gap-[10px]">
-            <Segmented options={TIMES} value={time} onChange={setTime} label="Free time" textClass="text-[15px] leading-[20px]" />
-            <div className="flex h-[48px] w-full items-center justify-between whitespace-nowrap border-b border-atlas-beige font-manrope text-[14px] leading-[19px]">
+            <Segmented
+              name="time"
+              options={TIME_OPTIONS}
+              value={time}
+              onChange={(next) => setPreferences({ ...preferences, time: next })}
+              labelId="pref-time"
+              textClass="text-[15px] leading-[20px]"
+            />
+            <div className="flex h-[48px] w-full items-center justify-between gap-[8px] border-b border-atlas-beige font-manrope text-[14px] leading-[19px]">
               <p className="text-atlas-ink">Starting</p>
-              <p className="font-semibold text-atlas-teal">Now · back by {BACK_BY[time]}</p>
+              <p aria-live="polite" className="font-semibold text-atlas-teal">
+                Now · back by {clock(DAY_START + hoursOf(time) * 60)}
+              </p>
             </div>
           </div>
         </section>
@@ -112,17 +124,32 @@ export function PreferencesForm() {
         </section>
 
         <section className="flex w-full flex-col items-start gap-[10px]">
-          <h2 className={SECTION_TITLE}>Price level</h2>
-          <Segmented options={PRICES} value={price} onChange={setPrice} label="Price level" textClass="text-[13px] leading-[18px]" />
+          <h2 id="pref-price" className={SECTION_TITLE}>
+            Price level
+          </h2>
+          <Segmented
+            name="price"
+            options={PRICE_OPTIONS}
+            value={price}
+            onChange={(next) => setPreferences({ ...preferences, price: next })}
+            labelId="pref-price"
+            textClass="text-[13px] leading-[18px]"
+          />
           <p className="w-full font-manrope text-[13px] leading-[1.5] text-atlas-slate">
             A general guide only. Places without a known price level can still appear.
           </p>
         </section>
       </div>
 
-      <div className="sticky bottom-0 z-10 flex h-[140px] w-full flex-col items-start gap-[6px] border-t border-atlas-beige bg-atlas-paper px-[16px] pb-[20px] pt-[12px]">
-        <AtlasButton to="PlanBuild">Plan my time</AtlasButton>
-        <AtlasTextLink to="Main">Just show me places</AtlasTextLink>
+      <div className="sticky bottom-0 z-10 border-t border-atlas-beige bg-atlas-paper">
+        <div className="mx-auto flex h-[139px] w-full max-w-[640px] flex-col items-start gap-[6px] px-[16px] pb-[calc(20px+env(safe-area-inset-bottom))] pt-[12px] short:h-auto short:flex-row short:items-center short:pb-[calc(10px+env(safe-area-inset-bottom))] short:pt-[10px]">
+          <AtlasButton to="PlanBuild" className="short:flex-1">
+            Plan my time
+          </AtlasButton>
+          <AtlasTextLink to="Main" className="short:w-auto short:px-[12px]">
+            Just show me places
+          </AtlasTextLink>
+        </div>
       </div>
     </main>
   );

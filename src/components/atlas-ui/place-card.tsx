@@ -1,4 +1,5 @@
 import { AtlasAsset, AtlasIcon } from "./asset";
+import type { AchievementLabel as AchievementStatus } from "./demo/live";
 import type { Place } from "./fixtures";
 import { AtlasLink } from "./ui";
 
@@ -32,14 +33,14 @@ export function PlacePhoto({ place, size, radius }: { place: Place; size: number
   );
 }
 
-export function AchievementLabel({ place }: { place: Place }) {
-  if (!place.achievement) return null;
-  const unlocked = place.achievement.kind === "unlocked";
+export function AchievementLabel({ status }: { status?: AchievementStatus }) {
+  if (!status) return null;
+  const unlocked = status.unlocked;
   return (
     <span className="flex items-center gap-[3px]">
       <AtlasIcon src={unlocked ? "/atlas-ui/icon-check-slate-13.svg" : "/atlas-ui/icon-ach-13.svg"} size={13} />
       <span className={`whitespace-nowrap font-manrope text-[12px] font-semibold leading-[16px] ${unlocked ? "text-atlas-slate" : "text-atlas-teal"}`}>
-        {place.achievement.label}
+        {status.label}
       </span>
     </span>
   );
@@ -53,12 +54,23 @@ export function PriceLevel({ price }: { price: string }) {
   );
 }
 
-export function PlaceCard({ place, selected }: { place: Place; selected: boolean }) {
-  const hasStatus = Boolean(place.planLabel || place.achievement);
+export function PlaceCard({
+  place,
+  selected,
+  planLabel,
+  achievement,
+}: {
+  place: Place;
+  selected: boolean;
+  /** "Stop 2 today" — from the demo plan. */
+  planLabel?: string;
+  achievement?: AchievementStatus;
+}) {
+  const hasStatus = Boolean(planLabel || achievement);
   return (
     <AtlasLink
       to={place.detail}
-      className={`flex w-[268px] shrink-0 snap-start items-start gap-[10px] rounded-[16px] bg-atlas-paper px-[12px] py-[10px] ${
+      className={`flex w-[268px] max-w-[calc(100vw-48px)] shrink-0 snap-start items-start wide:w-full wide:max-w-none gap-[10px] rounded-[16px] bg-atlas-paper px-[12px] py-[10px] ${
         selected ? "border-2 border-atlas-teal" : "border border-atlas-beige"
       }`}
     >
@@ -74,10 +86,8 @@ export function PlaceCard({ place, selected }: { place: Place; selected: boolean
         </span>
         {hasStatus ? (
           <span className="flex items-center gap-[8px]">
-            {place.planLabel ? (
-              <span className="font-manrope text-[12px] font-semibold leading-[16px] text-atlas-teal">{place.planLabel}</span>
-            ) : null}
-            <AchievementLabel place={place} />
+            {planLabel ? <span className="font-manrope text-[12px] font-semibold leading-[16px] text-atlas-teal">{planLabel}</span> : null}
+            <AchievementLabel status={achievement} />
           </span>
         ) : null}
       </span>

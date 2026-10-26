@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   AtlasBusyButton,
   AtlasConfirmationToast,
@@ -19,6 +20,8 @@ import { screenHref } from "@/components/atlas-ui/screens";
 
 /* Line heights come from the Figma text node heights, so the stack of states lines up exactly. */
 const CAPTION = "font-grotesk text-[12px] uppercase leading-[15px] tracking-[0.72px] text-atlas-slate";
+
+export const metadata: Metadata = { title: "Shared states" };
 
 export default function AtlasUiStatesPage() {
   return (

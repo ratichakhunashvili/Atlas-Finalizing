@@ -42,6 +42,45 @@
   --font-manrope: var(--font-atlas-manrope);
 }
 
+/*
+ * Layouts.
+ *
+ * The 390 x 844 Figma frame is the phone layout. `wide` is the one breakpoint where the app
+ * changes shape: tablets, desktops and phones held in landscape. There the bottom bar becomes a
+ * left navigation rail, map sheets become side panels, and detail screens split into columns.
+ * `short` catches any screen too short for the phone's stacked sheets and footers.
+ *
+ * Keep these media queries and the :root block below identical.
+ */
+@custom-variant wide {
+  @media (min-width: 768px), (orientation: landscape) and (max-height: 500px) {
+    @slot;
+  }
+}
+
+@custom-variant short {
+  @media (max-height: 500px) {
+    @slot;
+  }
+}
+
+/*
+ * Navigation geometry, shared by every screen that has to sit clear of it.
+ * --atlas-nav-h: the phone bottom bar (96 in the design) plus the home-indicator inset.
+ * --atlas-rail-w: the wide-layout navigation rail.
+ */
+:root {
+  --atlas-nav-h: calc(96px + env(safe-area-inset-bottom));
+  --atlas-rail-w: 0px;
+}
+
+@media (min-width: 768px), (orientation: landscape) and (max-height: 500px) {
+  :root {
+    --atlas-nav-h: 0px;
+    --atlas-rail-w: calc(88px + env(safe-area-inset-left));
+  }
+}
+
 html,
 body {
   height: 100%;
@@ -54,8 +93,106 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Keep Mapbox's logo and attribution visible above whatever sheet covers the bottom of the map. */
+/* Screens that show the navigation rail keep their content clear of it. */
+.atlas-app:has(.atlas-rail) {
+  padding-left: var(--atlas-rail-w);
+}
+
+/*
+ * Small text links the design draws at 16–22 px tall (plan chips, stop names, the terms line)
+ * keep their look but get a 6 px larger hit area above and below, so they meet the 24 px
+ * minimum target size.
+ */
+.atlas-hit {
+  position: relative;
+}
+
+.atlas-hit::after {
+  content: "";
+  position: absolute;
+  inset: -6px 0;
+}
+
+/*
+ * Visible focus on every surface. Deep Teal reads on Warm White and Beige; dark surfaces
+ * (teal screens, the bars, the camera) mark themselves .atlas-dark and get Warm Beige.
+ */
+:focus-visible {
+  outline: 3px solid var(--color-atlas-teal);
+  outline-offset: 2px;
+}
+
+.atlas-dark :focus-visible {
+  outline-color: var(--color-atlas-beige);
+}
+
+.atlas-light :focus-visible {
+  outline-color: var(--color-atlas-teal);
+}
+
+/* Horizontal rails (filter chips, place cards) fade at their trailing edge so it is clear they scroll. */
+.atlas-scroll-fade {
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+}
+
+dialog::backdrop {
+  background: rgb(29 41 41 / 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Keep Mapbox's logo and attribution visible beside whatever sheet or panel covers the map. */
 .atlas-map .mapboxgl-ctrl-bottom-left,
 .atlas-map .mapboxgl-ctrl-bottom-right {
   bottom: var(--atlas-map-inset, 0px);
+}
+
+.atlas-map .mapboxgl-ctrl-bottom-left {
+  left: var(--atlas-map-left-inset, 0px);
+}
+
+/* Side panel that holds map sheets in the wide layout; sidePanelWidth() in use-layout.ts matches it. */
+:root {
+  --atlas-panel-w: max(260px, min(400px, calc(100vw - 88px - 200px)));
+}
+
+/*
+ * My plan: one column on phones and tablets. From 1024 px the route preview and notes move into
+ * a column beside the timeline.
+ */
+.atlas-plan-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .atlas-plan-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-areas:
+      "head aside"
+      "list aside";
+    align-items: start;
+    column-gap: 32px;
+  }
+  .atlas-plan-grid > [data-area="head"] {
+    grid-area: head;
+  }
+  .atlas-plan-grid > [data-area="aside"] {
+    grid-area: aside;
+    position: sticky;
+    top: 20px;
+  }
+  .atlas-plan-grid > [data-area="list"] {
+    grid-area: list;
+  }
 }

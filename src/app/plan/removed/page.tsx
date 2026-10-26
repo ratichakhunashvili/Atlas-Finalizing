@@ -1,7 +1,14 @@
-import { MyPlan, PLAN_STATES } from "@/components/atlas-ui/my-plan";
+import type { Metadata } from "next";
+import { MyPlanScreen } from "@/components/atlas-ui/my-plan";
 
-/* MyPlanRemoved · My plan after removing stop 3 — Figma frame 1:2285. */
+/*
+ * MyPlanRemoved · My plan after removing stop 3 — Figma frame 1:2285.
+ *
+ * A design-review route: it opens this state and seeds the demo plan with it (demo/scenarios.ts).
+ */
+
+export const metadata: Metadata = { title: "My plan, stop removed" };
 
 export default function Page() {
-  return <MyPlan state={PLAN_STATES.removed} />;
+  return <MyPlanScreen scenario="removed" />;
 }
