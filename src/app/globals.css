@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+/*
+ * Atlas design tokens, taken from the Atlas Figma file
+ * (figma.com/design/3N0YrlADgeuFyp8I8oh5of), which follows docs/atlas-brand-book.md.
+ *
+ * These are the only colours and type families the interface uses. Everything in
+ * src/components/atlas-ui and src/app refers to them as Tailwind utilities, for example
+ * bg-atlas-teal, text-atlas-slate, border-atlas-beige, font-grotesk.
+ *
+ * Declared with plain @theme (not @theme inline) so each value is also emitted as a CSS
+ * custom property and can be used in hand-written CSS, as the body rule below does.
+ */
+@theme {
+  --color-atlas-teal: #0a4a4f;
+  --color-atlas-teal-soft: #3b6b6f;
+  --color-atlas-paper: #f6f3ed;
+  --color-atlas-beige: #d7c4b1;
+  --color-atlas-sand: #ece4da;
+  --color-atlas-sand-deep: #e2d7ca;
+  --color-atlas-dune: #e6dccd;
+  --color-atlas-bronze: #a58d66;
+  --color-atlas-ink: #1d2929;
+  --color-atlas-slate: #4a5757;
+  --color-atlas-danger: #8a3b2e;
+  --color-atlas-linen: #e9e3d9;
+  --color-atlas-umber: #8f7f6b;
+  --color-atlas-mist: #b9c2c2;
+  --color-atlas-water: #c3d6d2;
+  --color-atlas-night: #2b3838;
+  --color-atlas-fog: #d8dede;
+  --color-atlas-lagoon: #2a6266;
+}
+
+/*
+ * The font values are supplied by next/font in src/app/layout.tsx, so they must stay as
+ * references rather than being frozen at build time — hence `inline`. The theme key and the
+ * font variable are deliberately named differently so they can never reference each other.
+ */
+@theme inline {
+  --font-grotesk: var(--font-atlas-grotesk);
+  --font-manrope: var(--font-atlas-manrope);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-atlas-dune);
+  color: var(--color-atlas-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Keep Mapbox's logo and attribution visible above whatever sheet covers the bottom of the map. */
+.atlas-map .mapboxgl-ctrl-bottom-left,
+.atlas-map .mapboxgl-ctrl-bottom-right {
+  bottom: var(--atlas-map-inset, 0px);
+}
