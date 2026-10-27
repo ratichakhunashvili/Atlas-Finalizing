@@ -26,11 +26,28 @@ grouped exactly as the design's "Start here" frame. Screens that have not been b
 dimmed rather than linked.
 
 The map screens need a public Mapbox token. Copy the example file and fill it in — `.env.local`
-is git-ignored, so the token never gets committed:
+is git-ignored:
 
 ```bash
 cp .env.example .env.local
 ```
+
+`NEXT_PUBLIC_MAPBOX_TOKEN` is embedded in the browser bundle, so it must be a **public**
+Mapbox token (not a secret token). Restrict its allowed URLs in the Mapbox dashboard.
+
+## Deploying to Vercel
+
+1. Import this Git repository in Vercel. Keep the project root as the repository root and the
+   Framework Preset as **Next.js**; the existing `npm run build` script is the build command.
+   Leave the output directory at its default.
+2. In **Project Settings → Environment Variables**, add `NEXT_PUBLIC_MAPBOX_TOKEN` with your
+   public Mapbox token. Enable it for every environment you plan to deploy (Production, Preview,
+   and Development as needed).
+3. In the Mapbox dashboard, allow the deployed Vercel production and preview URLs for that token.
+4. Deploy (or redeploy after changing the environment variable). `NEXT_PUBLIC_` values are
+   included at build time, so changing the token requires a new deployment.
+
+Next.js 16 requires Node.js 20.9.0 or newer; the project declares this in `package.json`.
 
 ## Scripts
 
@@ -41,7 +58,9 @@ cp .env.example .env.local
 | `npm start` | Serve the production build. |
 | `npm run lint` | Run ESLint. |
 | `npm run typecheck` | Run the TypeScript compiler without emitting files. |
-| `npm run shots -- /:index` | Screenshot routes at 390px for comparison against Figma. |
+| `npm run shots -- /:index` | Screenshot routes at 390px for comparison against Figma (`VIEWPORT=320x568` for other sizes). |
+| `npm test` | Unit tests for the prototype's planning model. |
+| `npm run test:ui` | Browser checks with the dev server running: layout at ten viewports and the main journeys. |
 
 ## Layout
 

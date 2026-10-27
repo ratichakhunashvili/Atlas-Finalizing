@@ -1,6 +1,7 @@
+import type { Metadata } from "next";
+import { DetailActions, LivePlanChip, PartnerAchievementLive, PlanAction } from "@/components/atlas-ui/detail-live";
 import {
   ApprovalRow,
-  DetailActions,
   DetailBody,
   DetailHero,
   DetailScreen,
@@ -8,28 +9,27 @@ import {
   FactStrip,
   InfoRows,
   PartnerAbout,
-  PartnerAchievement,
-  PlanChip,
-  ViewAction,
   WhyThis,
 } from "@/components/atlas-ui/place-detail";
 
 /* DetailP1 · Partner Place 1 (visited today) — Figma frame 1:1799. */
 
+export const metadata: Metadata = { title: "Partner Place 1" };
+
 export default function PartnerPlace1Page() {
   return (
     <DetailScreen
+      hero={<DetailHero photo={{ src: "/atlas-ui/hero-partner-1.jpg", width: 520, height: 780 }} counter="1 / 4" />}
       actions={
         <DetailActions
           secondary={{ to: "RouteP1", icon: "/atlas-ui/icon-route-teal.svg", iconSize: 20, label: "Directions" }}
-          primary={{ to: "MyPlan", label: "Back to my plan", icon: "/atlas-ui/icon-list-light-19.svg" }}
+          primary={<PlanAction place="partner-1" />}
         />
       }
     >
-      <DetailHero photo={{ src: "/atlas-ui/hero-partner-1.jpg", width: 520, height: 780 }} counter="1 / 4" />
       <DetailBody variant="partner">
         <DetailTitle eyebrow="Partner · Food" name="Partner Place 1" gap={4}>
-          <ApprovalRow chip={<PlanChip tone="sand" to="MyPlan">Visited today ✓</PlanChip>} />
+          <ApprovalRow chip={<LivePlanChip place="partner-1" />} />
         </DetailTitle>
         <FactStrip
           facts={[
@@ -46,7 +46,7 @@ export default function PartnerPlace1Page() {
             { icon: "/atlas-ui/icon-pin-ink-18.svg", label: "Address", value: "[Street address], Tbilisi" },
           ]}
         />
-        <PartnerAchievement title="[Achievement 1]" line="Unlocked today at 16:12" action={<ViewAction to="AchievementDetailP1" />} />
+        <PartnerAchievementLive place="partner-1" />
       </DetailBody>
     </DetailScreen>
   );

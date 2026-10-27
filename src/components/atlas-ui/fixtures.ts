@@ -14,10 +14,6 @@ export type PlaceId = "partner-2" | "partner-1" | "pool" | "spa" | "partner-4" |
 /** External partner, the hotel's own facility, or an attraction unlocked with the camera. */
 export type PlaceKind = "partner" | "facility" | "attraction";
 
-export type AchievementStatus =
-  | { kind: "to-unlock"; label: "To unlock" | "Unlock with camera" }
-  | { kind: "unlocked"; label: "Unlocked today" | "Unlocked yesterday" };
-
 export type Photo = { src: string; width: number; height: number };
 
 export type Place = {
@@ -29,10 +25,7 @@ export type Place = {
   /** "11 min walk · 60 min" or "In Hotel A · 60 min". */
   meta: string;
   price?: "Budget" | "Moderate";
-  /** Plan position shown on the card, e.g. "Stop 2 today". */
-  planLabel?: string;
-  achievement?: AchievementStatus;
-  /** Photo on the map sheet card. */
+  /** Photo on the map sheet card. Plan position and achievement status come from the demo state (demo/live.ts). */
   photo?: Photo;
   /** Photo on the list row — the design uses a different picture there. */
   listPhoto?: Photo;
@@ -47,8 +40,6 @@ export type Place = {
 
 export const HOTEL = {
   name: "Hotel A",
-  /** Context header subtitle on the map screens. */
-  summary: "2 h free · Food, Culture · Moderate",
   designPoint: [179, 331] as [number, number],
 };
 
@@ -63,8 +54,6 @@ export const PLACES: Record<PlaceId, Place> = {
     eyebrow: "Partner · Culture",
     meta: "11 min walk · 60 min",
     price: "Budget",
-    planLabel: "Stop 2 today",
-    achievement: { kind: "to-unlock", label: "To unlock" },
     photo: { src: "/atlas-ui/photo-partner-2.jpg", width: 320, height: 480 },
     listPhoto: { src: "/atlas-ui/list-partner-2.jpg", width: 480, height: 320 },
     detail: "Detail",
@@ -77,7 +66,6 @@ export const PLACES: Record<PlaceId, Place> = {
     eyebrow: "Partner · Food",
     meta: "6 min walk · 45 min",
     price: "Moderate",
-    achievement: { kind: "unlocked", label: "Unlocked today" },
     photo: { src: "/atlas-ui/photo-partner-1.jpg", width: 320, height: 480 },
     listPhoto: { src: "/atlas-ui/list-partner-1.jpg", width: 397, height: 480 },
     detail: "DetailP1",
@@ -89,6 +77,7 @@ export const PLACES: Record<PlaceId, Place> = {
     kind: "facility",
     eyebrow: "At your hotel · Wellness",
     meta: "In Hotel A · 60 min",
+    photo: { src: "/atlas-ui/photo-pool.jpg", width: 359, height: 479 },
     listPhoto: { src: "/atlas-ui/list-pool.jpg", width: 320, height: 480 },
     detail: "FacilityPool",
     designPoint: [230, 284],
@@ -99,7 +88,7 @@ export const PLACES: Record<PlaceId, Place> = {
     kind: "facility",
     eyebrow: "At your hotel · Wellness",
     meta: "In Hotel A · 90 min",
-    achievement: { kind: "unlocked", label: "Unlocked yesterday" },
+    photo: { src: "/atlas-ui/photo-spa.jpg", width: 360, height: 480 },
     listPhoto: { src: "/atlas-ui/list-spa.jpg", width: 480, height: 320 },
     detail: "FacilityDetail",
     designPoint: [130, 322],
@@ -110,7 +99,7 @@ export const PLACES: Record<PlaceId, Place> = {
     kind: "partner",
     eyebrow: "Partner · Culture",
     meta: "14 min walk · 60 min",
-    achievement: { kind: "to-unlock", label: "To unlock" },
+    photo: { src: "/atlas-ui/choice-partner-4.jpg", width: 480, height: 320 },
     listPhoto: { src: "/atlas-ui/list-partner-4.jpg", width: 479, height: 378 },
     detail: "DetailP4",
     designPoint: [58, 442],
@@ -121,7 +110,8 @@ export const PLACES: Record<PlaceId, Place> = {
     kind: "attraction",
     eyebrow: "Attraction · History",
     meta: "20 min walk · 45 min",
-    achievement: { kind: "to-unlock", label: "Unlock with camera" },
+    photo: { src: "/atlas-ui/choice-attraction-1.jpg", width: 480, height: 329 },
+    listPhoto: { src: "/atlas-ui/choice-attraction-1.jpg", width: 480, height: 329 },
     detail: "AttractionDetail",
     designPoint: [284, 248],
   },
@@ -170,9 +160,6 @@ export type RouteFixture = {
   minutes: string;
   summary: string;
   steps: { icon: "up" | "turn" | "pin"; text: string; distance: string; emphasis?: boolean }[];
-  action:
-    | { kind: "button"; label: string; icon?: string; to: ScreenKey }
-    | { kind: "status"; label: string; icon: string };
   endTo: ScreenKey;
 };
 
@@ -182,14 +169,16 @@ const steps = (name: string): RouteFixture["steps"] => [
   { icon: "pin", text: `Arrive at ${name}`, distance: "30 m" },
 ];
 
-/** Route · Walking route (1:731) and its RouteP1, RouteP4 and RouteA1 variants. */
+/**
+ * Route · Walking route (1:731) and its RouteP1, RouteP4 and RouteA1 variants. The action at the
+ * bottom of the sheet follows the stop's status in the demo plan (map/route-screen.tsx).
+ */
 export const ROUTES: Record<RouteId, RouteFixture> = {
   "partner-2": {
     destination: "partner-2",
     minutes: "9 min",
     summary: "700 m left · arrive 16:58",
     steps: steps("Partner Place 2"),
-    action: { kind: "button", label: "I'm here — check in", icon: "/atlas-ui/icon-qr-light-19.svg", to: "Scan" },
     endTo: "MyPlan",
   },
   "partner-1": {
@@ -197,7 +186,6 @@ export const ROUTES: Record<RouteId, RouteFixture> = {
     minutes: "5 min",
     summary: "380 m left · arrive 16:06",
     steps: steps("Partner Place 1"),
-    action: { kind: "status", label: "You checked in here today", icon: "/atlas-ui/icon-qr-ink-19.svg" },
     endTo: "DetailP1",
   },
   "partner-4": {
@@ -205,7 +193,6 @@ export const ROUTES: Record<RouteId, RouteFixture> = {
     minutes: "12 min",
     summary: "1 km left · arrive 17:12",
     steps: steps("Partner Place 4"),
-    action: { kind: "button", label: "Add to my plan to check in", to: "MyPlanAddedP4" },
     endTo: "DetailP4",
   },
   "attraction-1": {
@@ -213,7 +200,6 @@ export const ROUTES: Record<RouteId, RouteFixture> = {
     minutes: "18 min",
     summary: "1.4 km left · arrive 17:20",
     steps: steps("Attraction 1"),
-    action: { kind: "button", label: "I'm here — open camera view", icon: "/atlas-ui/icon-camera-light-19.svg", to: "ARUnlock" },
     endTo: "AttractionDetail",
   },
 };

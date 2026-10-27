@@ -17,8 +17,7 @@ function ModeTab({ active, onSelect, children }: { active: boolean; onSelect: ()
   return (
     <button
       type="button"
-      role="tab"
-      aria-selected={active}
+      aria-pressed={active}
       onClick={onSelect}
       className={`flex h-[44px] min-w-0 flex-1 items-center justify-center font-manrope text-[14px] font-semibold leading-[19px] ${
         active ? "bg-atlas-teal text-atlas-paper" : "bg-atlas-paper text-atlas-teal"
@@ -43,7 +42,7 @@ export function AtlasAuthForm({ initialMode = "sign-in" }: { initialMode?: Mode 
         </p>
       </div>
 
-      <div role="tablist" aria-label="Account" className="flex w-full overflow-hidden rounded-[12px] border border-atlas-beige">
+      <div role="group" aria-label="Sign in or create an account" className="flex w-full overflow-hidden rounded-[12px] border border-atlas-beige">
         <ModeTab active={!creating} onSelect={() => setMode("sign-in")}>
           Sign in
         </ModeTab>
@@ -83,9 +82,12 @@ export function AtlasAuthForm({ initialMode = "sign-in" }: { initialMode?: Mode 
 
       <div className="flex w-full flex-col items-start gap-[10px]">
         <AtlasButton to="PermLocation">{creating ? "Create account" : "Sign in"}</AtlasButton>
-        <AtlasLink to="PrivacyPublic" className="w-full text-center font-manrope text-[12px] leading-[1.5] text-atlas-slate">
+        <AtlasLink to="PrivacyPublic" className="atlas-hit w-full text-center font-manrope text-[12px] leading-[1.5] text-atlas-slate">
           By continuing you agree to Atlas&apos;s Terms and Privacy notice.
         </AtlasLink>
+        <p className="w-full text-center font-manrope text-[12px] leading-[1.5] text-atlas-slate">
+          Prototype: sign-in isn&apos;t connected. Nothing you type is checked, stored or sent.
+        </p>
       </div>
     </form>
   );

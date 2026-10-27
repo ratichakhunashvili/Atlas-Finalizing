@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
 import type { ReactNode } from "react";
+import { NavigationMemory } from "@/components/atlas-ui/navigation";
 import "./globals.css";
 
 /*
@@ -25,8 +26,10 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Atlas",
+  title: { template: "%s · Atlas prototype", default: "Atlas prototype" },
   description: "Tell us when you're free. We'll figure out what you can do.",
+  // An interface prototype with fictional fixtures: keep it out of search results.
+  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
@@ -41,10 +44,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={`${spaceGrotesk.variable} ${manrope.variable}`}>
       <body>
         {/*
-         * The design frame is 390 wide. Capping at 390 keeps every screen pixel-exact on
-         * desktop and on phones at that width or wider; narrower phones scale down fluidly.
+         * At 390 wide every screen renders the Figma frame exactly. Other widths adapt the
+         * composition (globals.css: the `wide` and `short` layouts) instead of scaling it.
          */}
-        <div className="mx-auto min-h-full w-full max-w-[390px] bg-atlas-paper text-atlas-ink shadow-[0_0_60px_rgba(28,41,41,0.10)]">
+        <div className="atlas-app min-h-full w-full bg-atlas-paper text-atlas-ink">
+          <NavigationMemory />
           {children}
         </div>
       </body>

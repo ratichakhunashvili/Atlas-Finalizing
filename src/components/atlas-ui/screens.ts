@@ -67,6 +67,9 @@ export type ScreenKey =
   | "Achievements"
   | "AchievementDetail"
   | "AchievementDetailP1"
+  | "AchievementDetailP2"
+  | "AchievementDetailA1"
+  | "AchievementDetailP4"
   | "Permissions"
   | "Privacy"
   | "PrivacyPublic"
@@ -77,6 +80,7 @@ export type AtlasScreen = {
   key: ScreenKey;
   /** Frame name as it reads in Figma. */
   figmaName: string;
+  /** Empty for screens the prototype adds without a frame of their own (built from a sibling frame). */
   figmaNodeId: string;
   href: string;
   built: boolean;
@@ -147,6 +151,11 @@ export const ATLAS_SCREENS: readonly AtlasScreen[] = [
   { key: "Achievements", figmaName: "Achievements · Profile › Achievements", figmaNodeId: "1:624", href: "/achievements", built: true },
   { key: "AchievementDetail", figmaName: "AchievementDetail · Achievement details", figmaNodeId: "1:989", href: "/achievements/achievement-2", built: true },
   { key: "AchievementDetailP1", figmaName: "AchievementDetailP1 · Achievement 1 details", figmaNodeId: "1:1983", href: "/achievements/achievement-1", built: true },
+  // The design draws details for the two unlocked achievements only; these three reuse that frame
+  // so every achievement a screen mentions has somewhere to go.
+  { key: "AchievementDetailP2", figmaName: "Achievement 3 details (from 1:989)", figmaNodeId: "", href: "/achievements/achievement-3", built: true },
+  { key: "AchievementDetailA1", figmaName: "Achievement 4 details (from 1:989)", figmaNodeId: "", href: "/achievements/achievement-4", built: true },
+  { key: "AchievementDetailP4", figmaName: "Achievement 5 details (from 1:989)", figmaNodeId: "", href: "/achievements/achievement-5", built: true },
   { key: "Permissions", figmaName: "Permissions · Profile › Permissions", figmaNodeId: "1:2862", href: "/profile/permissions", built: true },
   { key: "Privacy", figmaName: "Privacy · Help and privacy", figmaNodeId: "1:1303", href: "/privacy", built: true },
   { key: "PrivacyPublic", figmaName: "PrivacyPublic · Terms and privacy (signed out)", figmaNodeId: "1:2888", href: "/terms", built: true },

@@ -1,6 +1,7 @@
+import type { Metadata } from "next";
+import { DetailActions, LivePlanChip, PartnerAchievementLive } from "@/components/atlas-ui/detail-live";
 import {
   ApprovalRow,
-  DetailActions,
   DetailBody,
   DetailHero,
   DetailScreen,
@@ -8,29 +9,32 @@ import {
   FactStrip,
   InfoRows,
   PartnerAbout,
-  PartnerAchievement,
-  PlanChip,
-  ScanAction,
   WhyThis,
 } from "@/components/atlas-ui/place-detail";
-import { AtlasLink } from "@/components/atlas-ui/ui";
+import { AtlasButton } from "@/components/atlas-ui/ui";
 
 /* Detail · Place details (Partner Place 2) — Figma frame 1:280. The next stop in today's plan. */
+
+export const metadata: Metadata = { title: "Partner Place 2" };
 
 export default function PartnerPlace2Page() {
   return (
     <DetailScreen
+      hero={<DetailHero photo={{ src: "/atlas-ui/hero-partner-2.jpg", width: 780, height: 520 }} counter="1 / 4" />}
       actions={
         <DetailActions
           secondary={{ to: "MyPlan", icon: "/atlas-ui/icon-list-teal-20.svg", iconSize: 20, label: "My plan" }}
-          primary={{ to: "Route", label: "Get directions", icon: "/atlas-ui/icon-route-light.svg" }}
+          primary={
+            <AtlasButton to="Route" icon="/atlas-ui/icon-route-light.svg" className="min-w-0 flex-1">
+              Get directions
+            </AtlasButton>
+          }
         />
       }
     >
-      <DetailHero photo={{ src: "/atlas-ui/hero-partner-2.jpg", width: 780, height: 520 }} counter="1 / 4" />
       <DetailBody variant="partner">
         <DetailTitle eyebrow="Partner · Culture" name="Partner Place 2" gap={4}>
-          <ApprovalRow chip={<PlanChip tone="teal" to="MyPlan">Stop 2 today ›</PlanChip>} />
+          <ApprovalRow chip={<LivePlanChip place="partner-2" />} />
         </DetailTitle>
         <FactStrip
           facts={[
@@ -47,16 +51,7 @@ export default function PartnerPlace2Page() {
             { icon: "/atlas-ui/icon-pin-ink-18.svg", label: "Address", value: "[Street address], Tbilisi" },
           ]}
         />
-        <PartnerAchievement
-          title="[Achievement 3]"
-          line="Scan the code at the counter to unlock"
-          action={<ScanAction enabled />}
-          footer={
-            <AtlasLink to="Unlocked" className="flex h-[36px] items-center font-manrope text-[13px] font-semibold leading-[18px] text-atlas-teal">
-              No code there? Check in with your location
-            </AtlasLink>
-          }
-        />
+        <PartnerAchievementLive place="partner-2" />
       </DetailBody>
     </DetailScreen>
   );

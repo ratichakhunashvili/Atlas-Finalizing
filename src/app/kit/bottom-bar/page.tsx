@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { AtlasBottomBar } from "@/components/atlas-ui/bottom-bar";
 
 /*
@@ -5,6 +6,8 @@ import { AtlasBottomBar } from "@/components/atlas-ui/bottom-bar";
  * Rendered here with the real component so the notch artwork and tab geometry can be checked
  * against the design before any screen uses it.
  */
+
+export const metadata: Metadata = { title: "Bottom bar" };
 
 export default function AtlasUiBottomBarKitPage() {
   return (

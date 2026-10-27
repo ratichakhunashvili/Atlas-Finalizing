@@ -35,7 +35,7 @@ export function FilterChips({
     <div
       role="toolbar"
       aria-label="Filter places"
-      className={`flex w-full items-start gap-[6px] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className}`}
+      className={`atlas-scroll-fade flex w-full items-start gap-[6px] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden wide:[mask-image:none] wide:flex-wrap ${className}`}
     >
       {FILTERS.map(({ filter: chip, shape }) => {
         const active = chip === filter;

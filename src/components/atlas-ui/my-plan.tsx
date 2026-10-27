@@ -1,36 +1,32 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect, type ReactNode } from "react";
 import { AtlasAsset, AtlasIcon } from "./asset";
 import { AtlasBottomBar } from "./bottom-bar";
+import { CheckInLink } from "./demo/check-in-link";
+import { clearFlash, seedDemo, undoLastChange, useDemoState, type DemoState } from "./demo/demo-store";
+import { DETAIL_SCREEN, ROUTE_SCREEN, checkInLabel } from "./demo/live";
+import { STOPS, clock, duration, timePlan, type TimedStop } from "./demo/plan-model";
+import { scenarioState, type PlanScenario } from "./demo/scenarios";
 import { ContextHeader, PlanSegment } from "./missions-chrome";
-import type { ScreenKey } from "./screens";
-import { AtlasLink } from "./ui";
+import { screenHref } from "./screens";
+import { AtlasButton, AtlasLink, AtlasTextLink, type } from "./ui";
 
 /*
- * MyPlan · Missions › My plan — Figma frame 1:489 — and the six states it moves through:
+ * MyPlan · Missions › My plan — Figma frame 1:489 — and the states it moves through:
  * MyPlanReplaced (2180), MyPlanRemoved (2285), MyPlanAddedSpa (2378), MyPlanAddedPool (2499),
- * MyPlanAddedA1 (2620) and MyPlanAddedP4 (2741).
+ * MyPlanAddedA1 (2620), MyPlanAddedP4 (2741) and MyPlanEmpty (1195).
  *
- * The plan is a timeline: start at the hotel, a done stop, the next stop, an unavailable or
- * replaced third stop, an optional added stop, and the way back. One component renders every
- * state from a description of it, so the real plan can drive it later.
+ * The plan is a timeline: start at the hotel, done stops, the next stop, later or unavailable
+ * stops, and the way back. Every time, count and warning comes from one model
+ * (demo/plan-model.ts), so the header, the stops and "Back to Hotel A" always agree. The design's
+ * state routes seed that model (demo/scenarios.ts), then behave like the live plan.
  */
 
-type ThirdStop =
-  | { kind: "unavailable" }
-  | { kind: "replaced"; name: string; meta: string; to: ScreenKey; action: { label: string; to: ScreenKey } }
-  | { kind: "none" };
-
-type AddedStop = { name: string; meta: string; to: ScreenKey; action: { label: string; to: ScreenKey } };
-
-export type PlanState = {
-  progress: { stops: string; back: string; right: string; steps: number; overTime?: boolean };
-  third: ThirdStop;
-  added?: AddedStop;
-  toast?: { message: string; undoTo: ScreenKey };
-};
-
 const DOT = "flex size-[28px] shrink-0 items-center justify-center rounded-[14px]";
-const SMALL_BUTTON = "flex h-[44px] shrink-0 items-center justify-center rounded-[12px] border border-atlas-teal px-[12px] font-manrope text-[13px] font-semibold leading-[18px] text-atlas-teal";
+const SMALL_BUTTON =
+  "flex h-[44px] shrink-0 items-center justify-center rounded-[12px] border border-atlas-teal px-[12px] font-manrope text-[13px] font-semibold leading-[18px] text-atlas-teal";
 
 function Row({ dot, line, children, padded = true }: { dot: ReactNode; line?: "teal" | "beige"; children: ReactNode; padded?: boolean }) {
   return (
@@ -56,45 +52,87 @@ function NumberDot({ n, tone = "teal" }: { n: number; tone?: "teal" | "dashed" }
   );
 }
 
-function StopCard({ stop, n }: { stop: AddedStop; n: number }) {
+function StopName({ stop, className }: { stop: TimedStop; className: string }) {
+  const detail = DETAIL_SCREEN[stop.id];
+  const name = STOPS[stop.id].name;
+  return detail ? (
+    <AtlasLink to={detail} className={`atlas-hit ${className}`}>
+      {name}
+    </AtlasLink>
+  ) : (
+    <span className={className}>{name}</span>
+  );
+}
+
+function stopMeta(stop: TimedStop, previous: number): string {
+  const fixture = STOPS[stop.id];
+  if (fixture.kind === "facility") return `In Hotel A · ${fixture.visit} min`;
+  return previous > 1 ? `${stop.walk} min from stop ${previous} · ${fixture.visit} min` : `${stop.walk} min walk · ${fixture.visit} min`;
+}
+
+function NextStop({ stop }: { stop: TimedStop }) {
+  const fixture = STOPS[stop.id];
+  const route = ROUTE_SCREEN[stop.id];
+  const meta = fixture.kind === "facility" ? `In Hotel A · ${fixture.visit} min visit` : `${stop.walk} min walk · ${fixture.visit} min visit`;
   return (
-    <Row dot={<NumberDot n={n} />} line="beige">
-      <div className="flex min-w-0 flex-1 items-center gap-[10px] rounded-[14px] border border-atlas-beige p-[10px]">
-        <AtlasLink to={stop.to} className="flex min-w-0 flex-1 flex-col items-start gap-px whitespace-nowrap text-left">
-          <span className="font-grotesk text-[16px] font-bold leading-[20px] text-atlas-teal">{stop.name}</span>
-          <span className="font-manrope text-[12px] leading-[16px] text-atlas-slate">{stop.meta}</span>
-        </AtlasLink>
-        <AtlasLink to={stop.action.to} className={SMALL_BUTTON}>
-          {stop.action.label}
-        </AtlasLink>
+    <Row dot={<NumberDot n={stop.position} />} line="beige">
+      <div className="flex min-w-0 flex-1 flex-col items-start gap-[8px] rounded-[14px] border-2 border-atlas-teal p-[10px]">
+        <div className="flex w-full items-center justify-between gap-[8px] text-atlas-teal">
+          <StopName stop={stop} className="min-w-0 font-grotesk text-[16px] font-bold leading-[20px]" />
+          <span className="shrink-0 font-manrope text-[12px] font-semibold leading-[16px]">Next</span>
+        </div>
+        <p className="font-manrope text-[12px] leading-[16px] text-atlas-slate">{meta}</p>
+        <div className="flex w-full items-start gap-[8px]">
+          <CheckInLink
+            stop={stop.id}
+            className="flex h-[44px] min-w-0 flex-1 items-center justify-center gap-[6px] rounded-[12px] bg-atlas-teal font-manrope text-[14px] font-semibold leading-[19px] text-atlas-paper"
+          >
+            <AtlasIcon src={fixture.kind === "attraction" ? "/atlas-ui/icon-camera-light-19.svg" : "/atlas-ui/icon-qr-light-17.svg"} size={17} />
+            {checkInLabel(stop.id)}
+          </CheckInLink>
+          {route ? (
+            <AtlasLink
+              to={route}
+              className="flex h-[44px] min-w-0 flex-1 items-center justify-center rounded-[12px] border border-atlas-teal font-manrope text-[14px] font-semibold leading-[19px] text-atlas-teal"
+            >
+              Directions
+            </AtlasLink>
+          ) : null}
+        </div>
       </div>
     </Row>
   );
 }
 
-function Progress({ progress }: { progress: PlanState["progress"] }) {
+function LaterStop({ stop, previous }: { stop: TimedStop; previous: number }) {
   return (
-    <div className="flex w-full flex-col items-start gap-[6px]">
-      <div className={`flex w-full items-start justify-between whitespace-nowrap font-manrope text-[13px] leading-[18px] ${progress.overTime ? "font-semibold" : ""}`}>
-        <p className="text-atlas-ink">
-          <span className="font-semibold">{progress.stops}</span> · {progress.back}
-        </p>
-        <p className="font-semibold text-atlas-teal">{progress.right}</p>
+    <Row dot={<NumberDot n={stop.position} />} line="beige">
+      <div className="flex min-w-0 flex-1 items-center gap-[10px] rounded-[14px] border border-atlas-beige p-[10px]">
+        <span className="flex min-w-0 flex-1 flex-col items-start gap-px text-left">
+          <StopName stop={stop} className="font-grotesk text-[16px] font-bold leading-[20px] text-atlas-teal" />
+          <span className="font-manrope text-[12px] leading-[16px] text-atlas-slate">{stopMeta(stop, previous)}</span>
+        </span>
+        <CheckInLink stop={stop.id} className={SMALL_BUTTON}>
+          {checkInLabel(stop.id)}
+        </CheckInLink>
       </div>
-      <div className="flex w-full items-start gap-[4px]">
-        {Array.from({ length: progress.steps }, (_, index) => (
-          <div key={index} className={`h-[5px] min-w-px flex-1 rounded-[3px] ${index === 0 ? "bg-atlas-teal" : "bg-atlas-beige"}`} />
-        ))}
-      </div>
-      {progress.overTime ? (
-        <div className="flex w-full items-center gap-[8px] rounded-[10px] bg-atlas-sand px-[10px] py-[8px]">
-          <AtlasIcon src="/atlas-ui/icon-clock-16.svg" size={16} className="shrink-0" />
-          <p className="min-w-0 flex-1 font-manrope text-[13px] leading-[18px] text-atlas-ink">
-            This plan now runs past your 2 h free. Remove a stop or re-plan.
-          </p>
+    </Row>
+  );
+}
+
+function UnavailableStop({ stop }: { stop: TimedStop }) {
+  return (
+    <Row dot={<NumberDot n={stop.position} tone="dashed" />} line="beige">
+      <div className="flex min-w-0 flex-1 items-center gap-[10px] rounded-[14px] bg-atlas-sand p-[10px]">
+        <div className="flex min-w-0 flex-1 flex-col items-start gap-px">
+          <p className="font-grotesk text-[16px] font-bold leading-[20px] text-atlas-slate line-through">{STOPS[stop.id].name}</p>
+          <p className="font-manrope text-[12px] font-semibold leading-[16px] text-atlas-ink">Not available anymore</p>
         </div>
-      ) : null}
-    </div>
+        <AtlasLink to="Repair" label={`Fix stop ${stop.position}, ${STOPS[stop.id].name}`} className={`${SMALL_BUTTON} bg-atlas-paper`}>
+          Fix
+        </AtlasLink>
+      </div>
+    </Row>
   );
 }
 
@@ -111,188 +149,230 @@ export function MissionsShell({
 }) {
   return (
     <main className="relative flex min-h-[100dvh] w-full flex-col bg-atlas-paper">
-      <div className="flex w-full flex-1 flex-col items-start px-[12px] pt-[12px]" style={{ gap, paddingBottom }}>
+      <div
+        className="mx-auto flex w-full max-w-[1040px] flex-1 flex-col items-start px-[12px] pt-[calc(12px+env(safe-area-inset-top))] wide:px-[24px] wide:pt-[calc(20px+env(safe-area-inset-top))]"
+        style={{ gap, paddingBottom }}
+      >
         <ContextHeader />
         <PlanSegment active="plan" />
         {children}
       </div>
       <div className="sticky bottom-0 z-10">
-        {toast ? <div className="absolute bottom-[108px] left-[12px] right-[12px]">{toast}</div> : null}
+        {toast ? (
+          <div className="absolute bottom-[calc(var(--atlas-nav-h)+12px)] left-[12px] right-[12px] wide:bottom-[16px] wide:left-auto wide:right-[24px] wide:w-[400px]">
+            {toast}
+          </div>
+        ) : null}
         <AtlasBottomBar active="missions" />
       </div>
     </main>
   );
 }
 
-export function MyPlan({ state }: { state: PlanState }) {
-  const toast = state.toast ? (
+function PlanToast({ message, canUndo, onUndo }: { message: string; canUndo: boolean; onUndo: () => void }) {
+  return (
     <div
       role="status"
-      className="flex h-[52px] w-full items-center justify-between rounded-[14px] bg-atlas-ink pl-[16px] pr-[8px] drop-shadow-[0px_6px_9px_rgba(28,41,41,0.3)]"
+      className="atlas-dark flex min-h-[52px] w-full items-center justify-between gap-[8px] rounded-[14px] bg-atlas-ink py-[4px] pl-[16px] pr-[8px] drop-shadow-[0px_6px_9px_rgba(28,41,41,0.3)]"
     >
-      <p className="font-manrope text-[14px] leading-[19px] text-atlas-paper">{state.toast.message}</p>
-      <AtlasLink to={state.toast.undoTo} className="flex h-[44px] items-center px-[12px] font-manrope text-[14px] font-semibold leading-[19px] text-atlas-beige">
-        Undo
-      </AtlasLink>
+      <p className="min-w-0 font-manrope text-[14px] leading-[19px] text-atlas-paper">{message}</p>
+      {canUndo ? (
+        <button
+          type="button"
+          onClick={onUndo}
+          className="flex h-[44px] shrink-0 items-center px-[12px] font-manrope text-[14px] font-semibold leading-[19px] text-atlas-beige"
+        >
+          Undo
+        </button>
+      ) : null}
     </div>
-  ) : undefined;
+  );
+}
 
+function EmptyPlan() {
   return (
-    <MissionsShell toast={toast}>
-      <div className="flex w-full items-center justify-between">
-        <h1 className="font-grotesk text-[20px] font-bold leading-[26px] text-atlas-teal">Today</h1>
-        <AtlasLink
-          to="Preferences"
-          className="flex h-[44px] items-center gap-[6px] rounded-[22px] border border-atlas-beige px-[12px] font-manrope text-[13px] font-semibold leading-[18px] text-atlas-ink"
-        >
-          <AtlasIcon src="/atlas-ui/icon-edit-15.svg" size={15} />
-          Re-plan
-        </AtlasLink>
+    <MissionsShell gap={14} paddingBottom={24}>
+      <div className="flex min-h-px w-full max-w-[560px] flex-1 flex-col items-start justify-center gap-[16px] self-center">
+        <div className="w-full max-w-[366px] overflow-hidden">
+          <AtlasAsset src="/atlas-ui/pattern-teal-wave.svg" width={366} height={130} className="max-w-none" />
+        </div>
+        <h1 className={`w-full ${type.title}`}>No plan for today yet</h1>
+        <p className={`w-full ${type.body} text-atlas-slate`}>
+          Tell us how much time you have and we will build a walking route from Hotel A and back.
+        </p>
       </div>
-
-      <Progress progress={state.progress} />
-
-      <AtlasLink to="Route" label="Open the walking route" className="relative block h-[92px] w-[358px] shrink-0 overflow-hidden rounded-[14px] bg-atlas-dune">
-        <AtlasAsset src="/atlas-ui/route-preview-art.svg" width={358} height={92} className="absolute left-0 top-0" />
-        <span className="absolute left-[274px] top-[62px] flex items-center justify-center rounded-[10px] bg-atlas-paper px-[9px] py-[3px] font-manrope text-[12px] font-semibold leading-[16px] text-atlas-teal">
-          Open map
-        </span>
-      </AtlasLink>
-
-      <ol className="flex w-full flex-col items-start">
-        <Row
-          padded={false}
-          line="teal"
-          dot={
-            <div className={`${DOT} bg-atlas-teal`}>
-              <AtlasIcon src="/atlas-ui/icon-home-light-14.svg" size={14} />
-            </div>
-          }
-        >
-          <p className="min-w-0 flex-1 pb-[12px] pt-[4px] font-manrope text-[14px] leading-[19px] text-atlas-ink">
-            <span className="font-semibold">Start at Hotel A</span> · 16:00
-          </p>
-        </Row>
-
-        <Row
-          padded={false}
-          line="beige"
-          dot={
-            <div className={`${DOT} bg-atlas-teal`}>
-              <AtlasIcon src="/atlas-ui/icon-check-light-14.svg" size={14} />
-            </div>
-          }
-        >
-          <AtlasLink to="DetailP1" className="flex min-w-0 flex-1 flex-col items-start gap-px pb-[12px] text-left">
-            <span className="whitespace-nowrap font-grotesk text-[16px] font-bold leading-[20px] text-atlas-teal">Partner Place 1</span>
-            <span className="w-full font-manrope text-[12px] leading-[16px] text-atlas-slate">Checked in 16:12 · achievement unlocked</span>
-          </AtlasLink>
-        </Row>
-
-        <Row dot={<NumberDot n={2} />} line="beige">
-          <div className="flex min-w-0 flex-1 flex-col items-start gap-[8px] rounded-[14px] border-2 border-atlas-teal p-[10px]">
-            <AtlasLink to="Detail" className="flex w-full items-center justify-between whitespace-nowrap text-atlas-teal">
-              <span className="font-grotesk text-[16px] font-bold leading-[20px]">Partner Place 2</span>
-              <span className="font-manrope text-[12px] font-semibold leading-[16px]">Next</span>
-            </AtlasLink>
-            <p className="whitespace-nowrap font-manrope text-[12px] leading-[16px] text-atlas-slate">11 min walk · 60 min visit</p>
-            <div className="flex w-full items-start gap-[8px]">
-              <AtlasLink
-                to="Scan"
-                className="flex h-[44px] min-w-0 flex-1 items-center justify-center gap-[6px] rounded-[12px] bg-atlas-teal font-manrope text-[14px] font-semibold leading-[19px] text-atlas-paper"
-              >
-                <AtlasIcon src="/atlas-ui/icon-qr-light-17.svg" size={17} />
-                Check in
-              </AtlasLink>
-              <AtlasLink
-                to="Route"
-                className="flex h-[44px] min-w-0 flex-1 items-center justify-center rounded-[12px] border border-atlas-teal font-manrope text-[14px] font-semibold leading-[19px] text-atlas-teal"
-              >
-                Directions
-              </AtlasLink>
-            </div>
-          </div>
-        </Row>
-
-        {state.third.kind === "unavailable" ? (
-          <Row dot={<NumberDot n={3} tone="dashed" />} line="beige">
-            <div className="flex min-w-0 flex-1 items-center gap-[10px] rounded-[14px] bg-atlas-sand p-[10px]">
-              <div className="flex min-w-0 flex-1 flex-col items-start gap-px whitespace-nowrap">
-                <p className="font-grotesk text-[16px] font-bold leading-[20px] text-atlas-slate line-through">Partner Place 3</p>
-                <p className="font-manrope text-[12px] font-semibold leading-[16px] text-atlas-ink">Not available anymore</p>
-              </div>
-              <AtlasLink to="Repair" className={`${SMALL_BUTTON} bg-atlas-paper`}>
-                Fix
-              </AtlasLink>
-            </div>
-          </Row>
-        ) : null}
-        {state.third.kind === "replaced" ? <StopCard n={3} stop={state.third} /> : null}
-        {state.added ? <StopCard n={4} stop={state.added} /> : null}
-
-        <Row
-          padded={false}
-          dot={
-            <div className={`${DOT} border-2 border-atlas-teal bg-atlas-paper`}>
-              <AtlasIcon src="/atlas-ui/icon-home-teal-14.svg" size={14} />
-            </div>
-          }
-        >
-          <p className="min-w-0 flex-1 pt-[4px] font-manrope text-[14px] leading-[19px] text-atlas-ink">
-            <span className="font-semibold">Back to Hotel A</span> · around 18:10
-          </p>
-        </Row>
-      </ol>
+      <div className="flex w-full max-w-[560px] flex-col self-center" style={{ gap: 14 }}>
+        <AtlasButton to="Preferences">Plan my free time</AtlasButton>
+        <AtlasTextLink to="Main">Browse places instead</AtlasTextLink>
+      </div>
     </MissionsShell>
   );
 }
 
-const OVER = { right: "Runs over", steps: 4, overTime: true } as const;
+function Plan({ state }: { state: DemoState }) {
+  const router = useRouter();
+  const { plan, preferences, flash } = state;
+  const timing = timePlan(plan, preferences.time);
 
-/** Every state of My plan the design draws. */
-export const PLAN_STATES = {
-  base: {
-    progress: { stops: "1 of 3 stops", back: "back by 18:10", right: "1 h 25 min left", steps: 3 },
-    third: { kind: "unavailable" },
-  },
-  replaced: {
-    progress: { stops: "1 of 3 stops", back: "back by 18:15", right: "1 h 25 min left", steps: 3 },
-    third: {
-      kind: "replaced",
-      name: "Partner Place 4",
-      meta: "9 min from stop 2 · 60 min",
-      to: "DetailP4",
-      action: { label: "Check in", to: "Scan" },
-    },
-    toast: { message: "Stop 3 replaced with Partner Place 4", undoTo: "MyPlan" },
-  },
-  removed: {
-    progress: { stops: "1 of 2 stops", back: "back by 17:40", right: "1 h 25 min left", steps: 2 },
-    third: { kind: "none" },
-    toast: { message: "Stop 3 removed from your plan", undoTo: "MyPlan" },
-  },
-  addedSpa: {
-    progress: { stops: "1 of 4 stops", back: "back by 19:40", ...OVER },
-    third: { kind: "unavailable" },
-    added: { name: "Spa", meta: "In Hotel A · 90 min", to: "FacilityDetail", action: { label: "Check in", to: "Scan" } },
-    toast: { message: "Added the spa to your plan", undoTo: "FacilityDetail" },
-  },
-  addedPool: {
-    progress: { stops: "1 of 4 stops", back: "back by 19:10", ...OVER },
-    third: { kind: "unavailable" },
-    added: { name: "Pool", meta: "In Hotel A · 60 min", to: "FacilityPool", action: { label: "Check in", to: "CheckedIn" } },
-    toast: { message: "Added the pool to your plan", undoTo: "FacilityPool" },
-  },
-  addedA1: {
-    progress: { stops: "1 of 4 stops", back: "back by 19:05", ...OVER },
-    third: { kind: "unavailable" },
-    added: { name: "Attraction 1", meta: "20 min walk · 45 min", to: "AttractionDetail", action: { label: "Unlock", to: "ARUnlock" } },
-    toast: { message: "Added Attraction 1 to your plan", undoTo: "AttractionDetail" },
-  },
-  addedP4: {
-    progress: { stops: "1 of 4 stops", back: "back by 19:15", ...OVER },
-    third: { kind: "unavailable" },
-    added: { name: "Partner Place 4", meta: "14 min walk · 60 min", to: "DetailP4", action: { label: "Check in", to: "Scan" } },
-    toast: { message: "Added Partner Place 4 to your plan", undoTo: "DetailP4" },
-  },
-} satisfies Record<string, PlanState>;
+  // A confirmation clears itself after a while, like a system toast.
+  useEffect(() => {
+    if (!flash) return;
+    const timer = setTimeout(clearFlash, 6000);
+    return () => clearTimeout(timer);
+  }, [flash]);
+
+  const undo = () => {
+    undoLastChange();
+    const href = screenHref("MyPlan");
+    if (href && window.location.pathname !== href) router.replace(href);
+  };
+
+  const routeTo = timing.next ? ROUTE_SCREEN[timing.next.id] : undefined;
+  // The stop each timed stop is walked from ("9 min from stop 2"); unavailable stops are skipped.
+  const timedPositions = timing.stops.filter((s) => s.status !== "unavailable").map((s) => s.position);
+  const previousOf = (position: number) => timedPositions.filter((p) => p < position).at(-1) ?? 1;
+
+  return (
+    <MissionsShell toast={flash ? <PlanToast message={flash.message} canUndo={Boolean(flash.undo)} onUndo={undo} /> : undefined}>
+      <div className="atlas-plan-grid">
+        <div data-area="head" className="flex w-full flex-col items-start gap-[12px]">
+          <div className="flex w-full items-center justify-between">
+            <h1 className="font-grotesk text-[20px] font-bold leading-[26px] text-atlas-teal">Today</h1>
+            <AtlasLink
+              to="Preferences"
+              className="flex h-[44px] items-center gap-[6px] rounded-[22px] border border-atlas-beige px-[12px] font-manrope text-[13px] font-semibold leading-[18px] text-atlas-ink"
+            >
+              <AtlasIcon src="/atlas-ui/icon-edit-15.svg" size={15} />
+              Re-plan
+            </AtlasLink>
+          </div>
+
+          <div className="flex w-full flex-col items-start gap-[6px]">
+            <div
+              className={`flex w-full flex-wrap items-start justify-between gap-x-[8px] font-manrope text-[13px] leading-[18px] ${timing.overrun ? "font-semibold" : ""}`}
+            >
+              <p className="text-atlas-ink">
+                <span className="font-semibold">
+                  {timing.doneCount} of {timing.totalCount} stops
+                </span>{" "}
+                · back by {clock(timing.returnAt)}
+              </p>
+              <p className="font-semibold text-atlas-teal">{timing.overrun ? "Runs over" : `${duration(timing.left)} left`}</p>
+            </div>
+            <div
+              role="progressbar"
+              aria-label="Stops done today"
+              aria-valuemin={0}
+              aria-valuemax={timing.totalCount}
+              aria-valuenow={timing.doneCount}
+              className="flex w-full items-start gap-[4px]"
+            >
+              {Array.from({ length: timing.totalCount }, (_, index) => (
+                <div key={index} className={`h-[5px] min-w-px flex-1 rounded-[3px] ${index < timing.doneCount ? "bg-atlas-teal" : "bg-atlas-beige"}`} />
+              ))}
+            </div>
+            {timing.overrun ? (
+              <div role="alert" className="flex w-full items-center gap-[8px] rounded-[10px] bg-atlas-sand px-[10px] py-[8px]">
+                <AtlasIcon src="/atlas-ui/icon-clock-16.svg" size={16} className="shrink-0" />
+                <p className="min-w-0 flex-1 font-manrope text-[13px] leading-[18px] text-atlas-ink">
+                  This plan now runs past your {preferences.time} free. Remove a stop or re-plan.
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <div data-area="aside" className="flex w-full flex-col items-start gap-[12px]">
+          <AtlasLink
+            to={routeTo ?? "Main"}
+            label={routeTo ? "Open the walking route to your next stop" : "Open the map"}
+            className="relative block h-[92px] w-full max-w-[358px] shrink-0 overflow-hidden rounded-[14px] bg-atlas-dune"
+          >
+            <AtlasAsset src="/atlas-ui/route-preview-art.svg" width={358} height={92} className="absolute left-0 top-0 max-w-none" />
+            <span className="absolute right-[12px] top-[62px] flex items-center justify-center rounded-[10px] bg-atlas-paper px-[9px] py-[3px] font-manrope text-[12px] font-semibold leading-[16px] text-atlas-teal min-[390px]:left-[274px] min-[390px]:right-auto">
+              Open map
+            </span>
+          </AtlasLink>
+        </div>
+
+        <div data-area="list" className="flex w-full flex-col items-start gap-[12px]">
+          <ol aria-label="Today's stops" className="flex w-full flex-col items-start">
+            <Row
+              padded={false}
+              line="teal"
+              dot={
+                <div className={`${DOT} bg-atlas-teal`}>
+                  <AtlasIcon src="/atlas-ui/icon-home-light-14.svg" size={14} />
+                </div>
+              }
+            >
+              <p className="min-w-0 flex-1 pb-[12px] pt-[4px] font-manrope text-[14px] leading-[19px] text-atlas-ink">
+                <span className="font-semibold">Start at Hotel A</span> · 16:00
+              </p>
+            </Row>
+
+            {timing.stops.map((stop) => {
+              if (stop.status === "done") {
+                const hasAchievement = Boolean(STOPS[stop.id].achievement);
+                return (
+                  <Row
+                    key={stop.id}
+                    padded={false}
+                    line="beige"
+                    dot={
+                      <div className={`${DOT} bg-atlas-teal`}>
+                        <AtlasIcon src="/atlas-ui/icon-check-light-14.svg" size={14} />
+                      </div>
+                    }
+                  >
+                    <div className="flex min-w-0 flex-1 flex-col items-start gap-px pb-[12px] text-left">
+                      <StopName stop={stop} className="font-grotesk text-[16px] font-bold leading-[20px] text-atlas-teal" />
+                      <span className="w-full font-manrope text-[12px] leading-[16px] text-atlas-slate">
+                        Checked in {clock(stop.checkedInAt ?? 0)} · {hasAchievement ? "achievement unlocked" : "visited"}
+                      </span>
+                    </div>
+                  </Row>
+                );
+              }
+              if (stop.status === "unavailable") return <UnavailableStop key={stop.id} stop={stop} />;
+              return stop.status === "next" ? (
+                <NextStop key={stop.id} stop={stop} />
+              ) : (
+                <LaterStop key={stop.id} stop={stop} previous={previousOf(stop.position)} />
+              );
+            })}
+
+            <Row
+              padded={false}
+              dot={
+                <div className={`${DOT} border-2 border-atlas-teal bg-atlas-paper`}>
+                  <AtlasIcon src="/atlas-ui/icon-home-teal-14.svg" size={14} />
+                </div>
+              }
+            >
+              <p className="min-w-0 flex-1 pt-[4px] font-manrope text-[14px] leading-[19px] text-atlas-ink">
+                <span className="font-semibold">Back to Hotel A</span> · around {clock(timing.returnAt)}
+              </p>
+            </Row>
+          </ol>
+          <p className="w-full font-manrope text-[12px] leading-[16px] text-atlas-slate">
+            Prototype: this plan is kept in this browser only, not in an Atlas account.
+          </p>
+        </div>
+      </div>
+    </MissionsShell>
+  );
+}
+
+/**
+ * My plan from the demo state. A design-review route passes `scenario`: it renders that state
+ * on the server and seeds the demo state with it on arrival, after which it is the live plan.
+ */
+export function MyPlanScreen({ scenario }: { scenario?: PlanScenario }) {
+  const live = useDemoState();
+  useEffect(() => {
+    if (scenario) seedDemo(scenario, scenarioState(scenario));
+  }, [scenario]);
+  const state = scenario && live.seededFrom !== scenario ? scenarioState(scenario) : live;
+  return state.plan.planned ? <Plan state={state} /> : <EmptyPlan />;
+}

@@ -1,26 +1,20 @@
 import type { ReactNode } from "react";
 import { AtlasIcon } from "./asset";
+import type { StopId } from "./demo/plan-model";
+import { DetailActions, FRONT_DESK, PlanAction } from "./detail-live";
+import { AboutBlock, DetailBody, DetailHero, DetailScreen, DetailTitle, FactCards, InfoRows, SourceRow } from "./place-detail";
 import type { ScreenKey } from "./screens";
-import {
-  AboutBlock,
-  DetailActions,
-  DetailBody,
-  DetailHero,
-  DetailScreen,
-  DetailTitle,
-  FactCards,
-  InfoRows,
-  SourceRow,
-} from "./place-detail";
 import { AtlasLink } from "./ui";
 
 /*
  * Hotel facility details — FacilityDetail (Spa, 1:872) and FacilityPool (1:1933). A hotel-owned
  * facility is labelled "Part of Hotel A", never as a partner, and Atlas takes no bookings: the
- * booking row points guests to the hotel's own desk.
+ * booking row points guests to the hotel's own desk. Calling the desk is not connected in this
+ * prototype, and the phone button says so instead of opening another screen.
  */
 
 export function FacilityDetail(props: {
+  place: StopId;
   name: string;
   photo: { src: string; width: number; height: number };
   where: string;
@@ -28,19 +22,12 @@ export function FacilityDetail(props: {
   about: string;
   booking: string;
   extra: ReactNode;
-  addTo: ScreenKey;
 }) {
   return (
     <DetailScreen
-      actions={
-        <DetailActions
-          tall
-          secondary={{ to: "Stay", icon: "/atlas-ui/icon-phone-teal-22.svg", iconSize: 22, label: "Call the front desk" }}
-          primary={{ to: props.addTo, label: "Add to my plan" }}
-        />
-      }
+      hero={<DetailHero photo={props.photo} />}
+      actions={<DetailActions tall secondary={FRONT_DESK} primary={<PlanAction place={props.place} />} />}
     >
-      <DetailHero photo={props.photo} />
       <DetailBody variant="place">
         <DetailTitle eyebrow="At your hotel · Wellness" name={props.name} gap={6}>
           <SourceRow icon="/atlas-ui/icon-home-slate-16.svg">Part of Hotel A</SourceRow>
@@ -71,7 +58,7 @@ export function FacilityAchievementLink({ to, title, line }: { to: ScreenKey; ti
       <span className="flex size-[44px] shrink-0 items-center justify-center rounded-[22px] border-4 border-atlas-bronze/60 bg-atlas-teal">
         <AtlasIcon src="/atlas-ui/icon-ach-light-20.svg" size={20} />
       </span>
-      <span className="flex min-w-0 flex-1 flex-col items-start gap-[2px] whitespace-nowrap">
+      <span className="flex min-w-0 flex-1 flex-col items-start gap-[2px]">
         <span className="font-grotesk text-[15px] font-bold leading-[19px] text-atlas-teal">{title}</span>
         <span className="font-manrope text-[13px] leading-[18px] text-atlas-slate">{line}</span>
       </span>

@@ -6,9 +6,21 @@ ready to be given behaviour later.
 
 ## Scope
 
-**Interface only.** No database, no authentication, no server actions, no business logic. Screens
-use the design's own demo copy and typed local fixtures. Mapbox replaces the design's hand-drawn
-map artwork; everything drawn on top of the map is recreated exactly.
+**Interface only.** No database, no authentication, no server actions, no real business logic.
+Screens use the design's own demo copy and typed local fixtures. Mapbox replaces the design's
+hand-drawn map artwork; everything drawn on top of the map is recreated exactly.
+
+**Demo state (approved October 2026).** So a walkthrough never contradicts itself, the guest's
+choices, plan, check-ins and achievements live in one typed demo store
+(`src/components/atlas-ui/demo/`), kept in this browser's localStorage only, and every time and
+label comes from one deterministic planning model (`demo/plan-model.ts`, unit-tested). It is a
+prototype aid, not the product: there is no account, nothing leaves the browser, and every
+simulated action says so on screen. Never present it as saved to a server or as real
+verification, and never reuse it as product logic — eligibility, planning and check-in belong on
+the server.
+
+**Layouts.** At 390 × 844 every screen is the Figma frame. Other sizes adapt the composition
+(`wide` and `short` variants in `src/app/globals.css`) rather than scaling it.
 
 ## Working style
 
