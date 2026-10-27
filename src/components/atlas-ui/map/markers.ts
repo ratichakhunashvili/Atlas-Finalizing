@@ -1,4 +1,4 @@
-import type { Map as MapboxMap } from "mapbox-gl";
+import type { Map as MapboxMap } from "mapbox-gl/esm";
 
 /*
  * Map marker images, registered with Mapbox as native images so markers render in a symbol

@@ -1,4 +1,4 @@
-import type { Map as MapboxMap } from "mapbox-gl";
+import type { Map as MapboxMap } from "mapbox-gl/esm";
 
 /*
  * Recolours Mapbox's light style with the palette of the Figma map art:

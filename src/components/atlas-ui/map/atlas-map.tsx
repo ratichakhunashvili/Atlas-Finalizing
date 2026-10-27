@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { GeoJSONSource, Map as MapboxMap } from "mapbox-gl";
+import type { GeoJSONSource, Map as MapboxMap } from "mapbox-gl/esm";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { HOTEL_LNGLAT, MAP_CENTER, DESIGN_ZOOM, PLACE_LNGLAT, YOU_LNGLAT, type LngLat } from "./geo";
 import { markerImageId, rasterizeMarkers, registerMarkers } from "./markers";
@@ -80,9 +80,9 @@ export function AtlasMap() {
     let cancelled = false;
 
     (async () => {
-      const [{ default: mapboxgl }, bitmaps] = await Promise.all([import("mapbox-gl"), rasterizeMarkers()]);
+      const [mapboxgl, bitmaps] = await Promise.all([import("mapbox-gl/esm"), rasterizeMarkers()]);
       if (cancelled || !containerRef.current) return;
-      mapboxgl.accessToken = TOKEN;
+      mapboxgl.setAccessToken(TOKEN);
 
       const map = new mapboxgl.Map({
         container: containerRef.current,
