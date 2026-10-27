@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  experimental: {
+    turbopackChunking: {
+      generateComponentChunks: true,
+      minComponentChunkSize: 0,
+    },
+  },
 };
 
 export default nextConfig;
