@@ -9,7 +9,7 @@ import { PLACES } from "./fixtures";
 import { ContextHeader, PlanSegment } from "./missions-chrome";
 import { PlaceRow } from "./place-row";
 import { hoursPhrase } from "./plan-flow";
-import { screenHref } from "./screens";
+import { screenHref } from "./screen-hrefs";
 import { AtlasButton, AtlasLink } from "./ui";
 
 /*

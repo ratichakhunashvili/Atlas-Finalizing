@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { AtlasIcon } from "./asset";
-import { screenHref, type ScreenKey } from "./screens";
+import { screenHref, type ScreenKey } from "./screen-hrefs";
 
 /*
  * Navigation helpers that need the browser.

@@ -9,7 +9,7 @@ import { ACHIEVEMENT_SCREEN, ACHIEVEMENT_TITLES, placeStatus, planLabel, useLive
 import { STOPS, clock, type StopId } from "./demo/plan-model";
 import { FRONT_DESK_NOTICE } from "./navigation";
 import { PartnerAchievement, PlanChip, SMALL_ACTION } from "./place-detail";
-import { screenHref, type ScreenKey } from "./screens";
+import { screenHref, type ScreenKey } from "./screen-hrefs";
 import { AtlasButton, AtlasLink } from "./ui";
 
 /*

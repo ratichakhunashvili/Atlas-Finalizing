@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { ScreenKey } from "../screens";
+import type { ScreenKey } from "../screen-hrefs";
 import { useDemoState, type DemoState } from "./demo-store";
 import { STOPS, timePlan, unlockedAchievements, type AchievementId, type PlanTiming, type Preferences, type StopId } from "./plan-model";
 

@@ -3,7 +3,7 @@ import { AtlasIcon } from "./asset";
 import type { StopId } from "./demo/plan-model";
 import { DetailActions, FRONT_DESK, PlanAction } from "./detail-live";
 import { AboutBlock, DetailBody, DetailHero, DetailScreen, DetailTitle, FactCards, InfoRows, SourceRow } from "./place-detail";
-import type { ScreenKey } from "./screens";
+import type { ScreenKey } from "./screen-hrefs";
 import { AtlasLink } from "./ui";
 
 /*

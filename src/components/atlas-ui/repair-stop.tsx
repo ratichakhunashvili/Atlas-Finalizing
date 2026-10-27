@@ -9,7 +9,7 @@ import { STOPS, clock, suggestReplacement, timePlan } from "./demo/plan-model";
 import { AtlasDialog } from "./dialog";
 import { PLACES, type PlaceId } from "./fixtures";
 import { PriceLevel } from "./place-card";
-import { screenHref } from "./screens";
+import { screenHref } from "./screen-hrefs";
 import { AtlasBackButton, AtlasButton, AtlasTextLink, FlowScreen, Spacer, type } from "./ui";
 
 /*

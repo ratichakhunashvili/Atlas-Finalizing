@@ -6,7 +6,7 @@ import { checkIn, chooseCheckIn, useDemoEvent } from "./demo/demo-store";
 import { useLivePlan, type LivePlan } from "./demo/live";
 import { STOPS, checkInTime, clock, type StopKind, type StopId } from "./demo/plan-model";
 import { CameraLayout, CloseButton } from "./scan-screens";
-import { screenHref } from "./screens";
+import { screenHref } from "./screen-hrefs";
 import { AtlasButton, FlowScreen, type } from "./ui";
 
 /*

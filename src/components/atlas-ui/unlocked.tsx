@@ -4,7 +4,7 @@ import { AtlasAsset, AtlasIcon } from "./asset";
 import { checkIn, useDemoEvent } from "./demo/demo-store";
 import { ACHIEVEMENT_TITLES, useLivePlan, type LivePlan } from "./demo/live";
 import { STOPS, checkInTime, clock, type StopId } from "./demo/plan-model";
-import type { ScreenKey } from "./screens";
+import type { ScreenKey } from "./screen-hrefs";
 import { AtlasButton, AtlasTextLink } from "./ui";
 
 /*

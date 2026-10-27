@@ -6,7 +6,7 @@ import { AtlasIcon } from "./asset";
 import { resetDemo } from "./demo/demo-store";
 import { AtlasDialog } from "./dialog";
 import { DemoAction, FRONT_DESK_NOTICE } from "./navigation";
-import { screenHref, type ScreenKey } from "./screens";
+import { screenHref, type ScreenKey } from "./screen-hrefs";
 import { AtlasBackButton, AtlasButton, AtlasPoints, AtlasTextLink } from "./ui";
 
 /*

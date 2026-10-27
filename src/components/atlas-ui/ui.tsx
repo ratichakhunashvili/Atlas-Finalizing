@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AtlasIcon } from "./asset";
-import { screenHref, type ScreenKey } from "./screens";
+import { screenHref, type ScreenKey } from "./screen-hrefs";
 
 /*
  * Primitives shared by every screen: links that follow the design's prototype connections,

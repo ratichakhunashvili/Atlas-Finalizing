@@ -7,7 +7,7 @@ import { CheckInLink } from "../demo/check-in-link";
 import { addStop } from "../demo/demo-store";
 import { placeStatus, useLivePlan } from "../demo/live";
 import { PLACES, ROUTES, type RouteId } from "../fixtures";
-import { screenHref } from "../screens";
+import { screenHref } from "../screen-hrefs";
 import { AtlasLink } from "../ui";
 import { useMapScene, useSceneContext } from "./scene";
 

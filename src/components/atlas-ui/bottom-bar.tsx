@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import { AtlasAsset, AtlasIcon } from "./asset";
-import { screenHref, type ScreenKey } from "./screens";
+import { screenHref, type ScreenKey } from "./screen-hrefs";
 
 /*
  * Atlas navigation — Figma component "Bottom bar" (node 1:21, variants at 7:795).
