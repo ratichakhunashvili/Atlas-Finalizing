@@ -6,7 +6,7 @@ import { AtlasBottomBar } from "./bottom-bar";
 import { useLivePlan } from "./demo/live";
 import type { AchievementId } from "./demo/plan-model";
 import { DemoAction, FRONT_DESK_NOTICE } from "./navigation";
-import type { ScreenKey } from "./screens";
+import type { ScreenKey } from "./screen-hrefs";
 import { AtlasLink } from "./ui";
 
 /*

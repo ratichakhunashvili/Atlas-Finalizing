@@ -1,4 +1,4 @@
-import type { ScreenKey } from "./screens";
+import type { ScreenKey } from "./screen-hrefs";
 import { AtlasBackButton, AtlasBadge, AtlasButton, AtlasPoints, AtlasTextLink, FlowScreen, Spacer, type } from "./ui";
 
 /*

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { AtlasAsset, AtlasIcon } from "./asset";
 import { HistoryBackButton } from "./navigation";
 import { ReadMore } from "./read-more";
-import type { ScreenKey } from "./screens";
+import type { ScreenKey } from "./screen-hrefs";
 import { AtlasLink } from "./ui";
 
 /*

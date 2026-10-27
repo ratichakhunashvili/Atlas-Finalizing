@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { screenHref } from "../screens";
+import { screenHref } from "../screen-hrefs";
 import { chooseCheckIn } from "./demo-store";
 import { checkInScreen } from "./live";
 import type { StopId } from "./plan-model";

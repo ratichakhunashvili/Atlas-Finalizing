@@ -10,7 +10,7 @@ import { DETAIL_SCREEN, ROUTE_SCREEN, checkInLabel } from "./demo/live";
 import { STOPS, clock, duration, timePlan, type TimedStop } from "./demo/plan-model";
 import { scenarioState, type PlanScenario } from "./demo/scenarios";
 import { ContextHeader, PlanSegment } from "./missions-chrome";
-import { screenHref } from "./screens";
+import { screenHref } from "./screen-hrefs";
 import { AtlasButton, AtlasLink, AtlasTextLink, type } from "./ui";
 
 /*

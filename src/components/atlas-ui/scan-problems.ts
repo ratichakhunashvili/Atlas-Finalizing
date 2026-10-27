@@ -1,4 +1,4 @@
-import type { ScreenKey } from "./screens";
+import type { ScreenKey } from "./screen-hrefs";
 
 /*
  * The six check-in problem cases (1:1042 – 1:1127). Kept out of the client module

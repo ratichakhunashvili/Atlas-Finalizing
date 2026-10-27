@@ -5,7 +5,7 @@ import { AtlasAsset, AtlasIcon } from "./asset";
 import { AdvanceAfter } from "./advance-after";
 import { savePlan, useDemoState } from "./demo/demo-store";
 import { STOPS, clock, proposePlan, timePlan, walkMinutes, type TimeOption } from "./demo/plan-model";
-import { screenHref } from "./screens";
+import { screenHref } from "./screen-hrefs";
 import { AtlasBackButton, AtlasButton, AtlasTextLink, FlowScreen, Spacer, type } from "./ui";
 
 /*

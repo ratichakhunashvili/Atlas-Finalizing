@@ -8,7 +8,7 @@ import { chooseCheckIn } from "./demo/demo-store";
 import { useLivePlan, type LivePlan } from "./demo/live";
 import { STOPS, type StopId } from "./demo/plan-model";
 import type { ScanProblem } from "./scan-problems";
-import { screenHref } from "./screens";
+import { screenHref } from "./screen-hrefs";
 import { AtlasButton, AtlasLink, AtlasTextLink } from "./ui";
 
 /*

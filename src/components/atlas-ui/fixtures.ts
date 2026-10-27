@@ -1,4 +1,4 @@
-import type { ScreenKey } from "./screens";
+import type { ScreenKey } from "./screen-hrefs";
 
 /*
  * The demo content of the Atlas Figma file, as typed fixtures. Every name, time and status here

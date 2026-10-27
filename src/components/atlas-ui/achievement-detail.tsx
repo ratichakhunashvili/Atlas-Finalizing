@@ -3,7 +3,7 @@
 import { AtlasIcon } from "./asset";
 import { ACHIEVEMENT_TITLES, DETAIL_SCREEN, useLivePlan, type LivePlan } from "./demo/live";
 import { STOPS, clock, type AchievementId, type StopId } from "./demo/plan-model";
-import type { ScreenKey } from "./screens";
+import type { ScreenKey } from "./screen-hrefs";
 import { AtlasBackButton, AtlasButton, Spacer, type } from "./ui";
 
 /*
