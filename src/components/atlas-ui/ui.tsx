@@ -111,13 +111,17 @@ export function AtlasTextLink({
   children,
   className = "",
   onClick,
+  tone = "teal",
 }: {
   to?: ScreenKey;
   children: ReactNode;
   className?: string;
   onClick?: () => void;
+  /** Slate for the quieter third action ("Cancel", "Just show me places") in some frames. */
+  tone?: "teal" | "slate";
 }) {
-  const classes = `flex h-[44px] w-full shrink-0 items-center justify-center font-manrope text-[15px] font-semibold leading-[20px] text-atlas-teal ${className}`;
+  const color = tone === "slate" ? "text-atlas-slate" : "text-atlas-teal";
+  const classes = `flex h-[44px] w-full shrink-0 items-center justify-center font-manrope text-[15px] font-semibold leading-[20px] ${color} ${className}`;
   if (to) {
     return (
       <AtlasLink to={to} className={classes}>
@@ -154,7 +158,7 @@ export function AtlasBadge({
 }: {
   icon: string;
   iconSize: number;
-  size?: 64 | 72;
+  size?: 56 | 64 | 72;
   tone?: "teal" | "sand";
 }) {
   return (
@@ -167,13 +171,19 @@ export function AtlasBadge({
   );
 }
 
-/** Labelled text field (Field · Email, Field · Password...). */
+/**
+ * Labelled text field (Field · Email, Field · Password...). An `error` replaces the hint with a
+ * Danger message, thickens the outline to 2px (padding shrinks by 1px so the text stays put) and
+ * marks the input invalid for assistive technology.
+ */
 export function AtlasField({
   id,
   label,
   type: inputType = "text",
   placeholder,
   hint,
+  error,
+  defaultValue,
   autoComplete,
 }: {
   id: string;
@@ -181,9 +191,12 @@ export function AtlasField({
   type?: string;
   placeholder?: string;
   hint?: string;
+  error?: string;
+  defaultValue?: string;
   autoComplete?: string;
 }) {
-  const hintId = hint ? `${id}-hint` : undefined;
+  const message = error ?? hint;
+  const messageId = message ? `${id}-${error ? "error" : "hint"}` : undefined;
   return (
     <div className="flex w-full flex-col items-start gap-[6px]">
       <label htmlFor={id} className={type.label}>
@@ -194,13 +207,17 @@ export function AtlasField({
         name={id}
         type={inputType}
         placeholder={placeholder}
+        defaultValue={defaultValue}
         autoComplete={autoComplete}
-        aria-describedby={hintId}
-        className="h-[52px] w-full rounded-[12px] border border-atlas-umber bg-white px-[14px] font-manrope text-[16px] leading-[22px] text-atlas-ink placeholder:text-atlas-slate/70 focus:border-atlas-teal focus:outline-2 focus:outline-offset-0 focus:outline-atlas-teal"
+        aria-describedby={messageId}
+        aria-invalid={error ? true : undefined}
+        className={`h-[52px] w-full rounded-[12px] bg-white font-manrope text-[16px] leading-[22px] text-atlas-ink placeholder:text-atlas-slate/70 focus:outline-2 focus:outline-offset-0 focus:outline-atlas-teal ${
+          error ? "border-2 border-atlas-danger px-[13px]" : "border border-atlas-umber px-[14px] focus:border-atlas-teal"
+        }`}
       />
-      {hint ? (
-        <p id={hintId} className="font-manrope text-[13px] leading-[18px] text-atlas-slate">
-          {hint}
+      {message ? (
+        <p id={messageId} className={`font-manrope text-[13px] leading-[18px] ${error ? "text-atlas-danger" : "text-atlas-slate"}`}>
+          {message}
         </p>
       ) : null}
     </div>

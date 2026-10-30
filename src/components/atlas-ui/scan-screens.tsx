@@ -8,7 +8,7 @@ import { chooseCheckIn } from "./demo/demo-store";
 import { useLivePlan, type LivePlan } from "./demo/live";
 import { STOPS, type StopId } from "./demo/plan-model";
 import type { ScanProblem } from "./scan-problems";
-import { screenHref } from "./screen-hrefs";
+import { screenHref, type ScreenKey } from "./screen-hrefs";
 import { AtlasButton, AtlasLink, AtlasTextLink } from "./ui";
 
 /*
@@ -41,11 +41,11 @@ export function CameraLayout({ camera, panel, label, labelTop }: { camera: React
   );
 }
 
-export function CloseButton({ to = "Main" }: { to?: "Main" | "AttractionDetail" }) {
+export function CloseButton({ to = "Main", label }: { to?: ScreenKey; label?: string }) {
   return (
     <AtlasLink
       to={to}
-      label={to === "Main" ? "Close the scanner" : "Close the camera view"}
+      label={label ?? (to === "AttractionDetail" ? "Close the camera view" : "Close the scanner")}
       className="absolute left-[16px] top-[calc(16px+env(safe-area-inset-top))] z-10 flex size-[44px] items-center justify-center rounded-[12px] bg-atlas-ink/75"
     >
       <AtlasIcon src="/atlas-ui/icon-close-light.svg" size={20} />
@@ -54,6 +54,18 @@ export function CloseButton({ to = "Main" }: { to?: "Main" | "AttractionDetail" 
 }
 
 const CORNER = "absolute size-[44px] border-atlas-beige";
+
+/** The four Warm Beige corners of the viewfinder; place inside a relative square. */
+export function ViewfinderCorners() {
+  return (
+    <>
+      <span className={`${CORNER} left-0 top-0 rounded-tl-[14px] border-l-4 border-t-4`} />
+      <span className={`${CORNER} right-0 top-0 rounded-tr-[14px] border-r-4 border-t-4`} />
+      <span className={`${CORNER} bottom-0 left-0 rounded-bl-[14px] border-b-4 border-l-4`} />
+      <span className={`${CORNER} bottom-0 right-0 rounded-br-[14px] border-b-4 border-r-4`} />
+    </>
+  );
+}
 
 /** The stop the scanner checks in at: the one the guest chose, else the next partner in the plan. */
 export function scanTarget(live: LivePlan): StopId | undefined {
@@ -129,10 +141,7 @@ export function ScanScreen() {
               label={`Simulate a good scan at ${name}`}
               className="relative block size-[min(240px,calc(100vw_-_32px))] shrink-0 short:size-[min(200px,calc(100vw_-_32px))]"
             >
-              <span className={`${CORNER} left-0 top-0 rounded-tl-[14px] border-l-4 border-t-4`} />
-              <span className={`${CORNER} right-0 top-0 rounded-tr-[14px] border-r-4 border-t-4`} />
-              <span className={`${CORNER} bottom-0 left-0 rounded-bl-[14px] border-b-4 border-l-4`} />
-              <span className={`${CORNER} bottom-0 right-0 rounded-br-[14px] border-b-4 border-r-4`} />
+              <ViewfinderCorners />
             </SimulatedCheckIn>
             ) : null}
           </div>

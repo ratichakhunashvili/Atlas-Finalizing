@@ -17,7 +17,9 @@ import { useShortScreen } from "../use-layout";
  * Main · Missions › Map (home) — Figma frame 1:205, with the Map layer component set (1:2926):
  * five filter chips, six places, and the place sheet. Chips filter, markers select a place,
  * cards open its details. The map controls toggle 2D / 3D and centre on the guest or the hotel,
- * showing the two toasts from frames 1:5054 and 1:5059.
+ * showing the two toasts from frames 1:5054 and 1:5059. With location off (frame 70:4761) a
+ * banner under the chips says the map is showing places around the hotel instead, with a link
+ * to Permissions; there is no "you" dot, and the locate control opens Permissions too.
  *
  * Phone layout: geometry is anchored to the screen edges — header, switch, chips and controls
  * to the top, sheet and bar to the bottom — so a 390 x 844 screen is exactly the design. The
@@ -72,7 +74,33 @@ export function MapToast({ kind, collapsed = false }: { kind: MapToastKind; coll
 /** Top offsets clear the status bar on notched phones; env() is 0 everywhere else. */
 const TOP = "top-[calc(var(--top)+env(safe-area-inset-top))]";
 
-export function MissionsMap({ initialToast }: { initialToast?: MapToastKind }) {
+/**
+ * Location banner (70:3980): beside the map controls on phones, in the side panel when wide. On
+ * short screens it takes its own row above the controls; on very narrow ones (200% zoom) it shrinks
+ * to one line, "Location off · Turn on", with the full sentence kept for screen readers, so the
+ * controls under it stay clear of the place sheet.
+ */
+function LocationOffBanner() {
+  return (
+    <div role="status" className="flex min-w-0 flex-1 items-center gap-[10px] rounded-[14px] bg-atlas-sand pl-[12px] pr-[8px] wide:flex-none">
+      <AtlasIcon src="/atlas-ui/icon-pin-ink-18.svg" size={18} className="shrink-0 [@media(max-width:300px)]:hidden" />
+      <p className="min-w-0 flex-1 py-[10px] font-manrope text-[13px] leading-[1.4] text-atlas-ink">
+        <span className="[@media(max-width:300px)]:sr-only">Location is off. Showing places around Hotel A.</span>
+        <span aria-hidden className="hidden whitespace-nowrap [@media(max-width:300px)]:inline">
+          Location off
+        </span>
+      </p>
+      <AtlasLink
+        to="Permissions"
+        className="flex h-[44px] shrink-0 items-center px-[4px] font-manrope text-[13px] font-semibold leading-[18px] text-atlas-teal"
+      >
+        Turn on
+      </AtlasLink>
+    </div>
+  );
+}
+
+export function MissionsMap({ initialToast, locationOff = false }: { initialToast?: MapToastKind; locationOff?: boolean }) {
   const [filter, setFilter] = useState<MapFilter>("All");
   const [selected, setSelected] = useState<PlaceId>("partner-2");
   const [toast, setToast] = useState<MapToastKind | null>(initialToast ?? null);
@@ -97,7 +125,7 @@ export function MissionsMap({ initialToast }: { initialToast?: MapToastKind }) {
   );
 
   useMapScene(
-    { places, hotel: true, you: true, bottomInset: 96 + (collapsed ? SHEET_COLLAPSED : SHEET_HEIGHT), allowTilt: true, panel: true },
+    { places, hotel: true, you: !locationOff, bottomInset: 96 + (collapsed ? SHEET_COLLAPSED : SHEET_HEIGHT), allowTilt: true, panel: true },
     selectPlace
   );
 
@@ -111,7 +139,8 @@ export function MissionsMap({ initialToast }: { initialToast?: MapToastKind }) {
   // Review routes that open on a toast start centred where that toast says.
   useEffect(() => {
     if (initialToast) moveCamera(initialToast);
-  }, [initialToast, moveCamera]);
+    else if (locationOff) moveCamera("hotel");
+  }, [initialToast, locationOff, moveCamera]);
 
   const changeFilter = (next: MapFilter) => {
     setFilter(next);
@@ -136,9 +165,19 @@ export function MissionsMap({ initialToast }: { initialToast?: MapToastKind }) {
       >
         {dimension === "3D" ? "2D" : "3D"}
       </button>
-      <ControlButton label="Centre on my location" onClick={() => centre("you")}>
-        <AtlasIcon src="/atlas-ui/icon-locate.svg" size={19} />
-      </ControlButton>
+      {locationOff ? (
+        <AtlasLink
+          to="Permissions"
+          label="Turn on location"
+          className="flex size-[44px] shrink-0 items-center justify-center rounded-[12px] border border-atlas-beige bg-atlas-paper"
+        >
+          <AtlasIcon src="/atlas-ui/icon-locate.svg" size={19} />
+        </AtlasLink>
+      ) : (
+        <ControlButton label="Centre on my location" onClick={() => centre("you")}>
+          <AtlasIcon src="/atlas-ui/icon-locate.svg" size={19} />
+        </ControlButton>
+      )}
       <ControlButton label="Show Hotel A" onClick={() => centre("hotel")}>
         <AtlasIcon src="/atlas-ui/icon-home-teal-19.svg" size={19} />
       </ControlButton>
@@ -164,8 +203,17 @@ export function MissionsMap({ initialToast }: { initialToast?: MapToastKind }) {
           <div className="pointer-events-auto mt-[8px] wide:mt-0">
             <FilterChips filter={filter} onChange={changeFilter} className="px-[12px] wide:px-0" />
           </div>
-          <div className="pointer-events-auto mr-[12px] mt-[8px] flex flex-col items-start gap-[6px] self-end [@media(max-height:700px)]:flex-row wide:hidden">
-            {controls}
+          <div
+            className={`mx-[12px] mt-[8px] flex items-start gap-[10px] [@media(max-height:700px)]:flex-col [@media(max-height:700px)]:items-stretch [@media(max-height:700px)]:gap-[8px] [@media(max-width:300px)]:mt-[4px] [@media(max-width:300px)]:gap-[4px] wide:mx-0 wide:mt-0 wide:flex-row ${locationOff ? "" : "wide:hidden"}`}
+          >
+            {locationOff ? (
+              <div className="pointer-events-auto flex min-w-0 flex-1">
+                <LocationOffBanner />
+              </div>
+            ) : null}
+            <div className="pointer-events-auto ml-auto flex flex-col items-start gap-[6px] [@media(max-height:700px)]:flex-row [@media(max-width:300px)]:ml-0 wide:hidden">
+              {controls}
+            </div>
           </div>
         </div>
 

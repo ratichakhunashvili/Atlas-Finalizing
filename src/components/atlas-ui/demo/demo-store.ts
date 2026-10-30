@@ -2,6 +2,7 @@ import { useEffect, useSyncExternalStore } from "react";
 import {
   DEFAULT_PLAN,
   DEFAULT_PREFERENCES,
+  STOPS,
   checkInTime,
   type PlanState,
   type Preferences,
@@ -138,6 +139,19 @@ export function makeNextStop(id: StopId, message: string): void {
     planned: true,
     upcoming: [id, ...plan.upcoming.filter((u) => u !== id)],
   }));
+}
+
+/**
+ * Puts the stops still to visit in a new order (Reorder stops). Ignored unless `upcoming` holds
+ * exactly the same stops, and unavailable stops must keep their place: only the order changes.
+ */
+export function reorderStops(upcoming: StopId[], message: string): void {
+  const plan = snapshot().plan;
+  const same = upcoming.length === plan.upcoming.length && plan.upcoming.every((id) => upcoming.includes(id));
+  const fixedInPlace = plan.upcoming.every((id, index) => STOPS[id].available || upcoming[index] === id);
+  const changed = upcoming.some((id, index) => plan.upcoming[index] !== id);
+  if (!same || !fixedInPlace || !changed) return;
+  changePlan(message, (current) => ({ ...current, upcoming }));
 }
 
 export function undoLastChange(): void {

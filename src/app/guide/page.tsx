@@ -5,7 +5,7 @@ import { DemoResetButton } from "@/components/atlas-ui/demo/reset-button";
 import { screenHref, type ScreenKey } from "@/components/atlas-ui/screens";
 
 /*
- * Index · Start here: prototype guide — Figma frame 1:1639.
+ * Index · Start here: prototype guide — Figma frame 70:4452 (an updated copy of 1:1639).
  *
  * Same groups, same copy and same order as the design. A row links through once its screen
  * has been built; until then it is dimmed and inert rather than a dead link.
@@ -78,6 +78,36 @@ const GROUPS: readonly IndexGroup[] = [
       { title: "No partner fits", subtitle: "Hotel facilities instead", screen: "NoMatch" },
       { title: "Reset password", subtitle: "Send link, then check email", screen: "ForgotPassword" },
     ],
+  },
+  {
+    label: "Account and hotel entry",
+    links: [
+      { title: "Create account", subtitle: "Name, email, password", screen: "SignUp" },
+      { title: "Sign-up: email already used", subtitle: "Error state", screen: "SignUpEmailUsed" },
+      { title: "Sign-up: weak password", subtitle: "Error state", screen: "SignUpWeak" },
+      { title: "Reset password", subtitle: "The page the email link opens", screen: "ResetPassword" },
+      { title: "Password changed", subtitle: "Success", screen: "ResetDone" },
+      { title: "Reset link expired", subtitle: "Invalid or old link", screen: "ResetExpired" },
+      { title: "Scan the hotel code", subtitle: "Join a hotel from the app", screen: "ScanHotel" },
+      { title: "Stay confirmed", subtitle: "After a good hotel scan", screen: "StayConfirmed" },
+      { title: "Stay ended", subtitle: "After check-out", screen: "StayEnded" },
+    ],
+  },
+  {
+    label: "Plan, map and profile states",
+    links: [
+      { title: "Reorder stops", subtitle: "From My plan after adding a stop", screen: "ReorderStops" },
+      { title: "Plan failed to load", subtitle: "Retry", screen: "PlanError" },
+      { title: "Couldn't build the plan", subtitle: "Retry", screen: "PlanBuildFailed" },
+      { title: "Map without location", subtitle: "Hotel-centred", screen: "MapNoLocation" },
+      { title: "Edit preferences", subtitle: "From Profile", screen: "PrefsEdit" },
+      { title: "Sign-out confirmation", subtitle: "Dialog", screen: "SignOutConfirm" },
+      { title: "Account deleted", subtitle: "After delete", screen: "AccountDeleted" },
+    ],
+  },
+  {
+    label: "Admin panel",
+    links: [{ title: "Admin sign-in", subtitle: "Desktop. All admin pages open from the sidebar", screen: "AdminSignIn" }],
   },
   {
     label: "Design-review states",

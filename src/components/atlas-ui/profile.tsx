@@ -1,19 +1,24 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { AtlasIcon, AtlasLogo } from "./asset";
 import { AtlasBottomBar } from "./bottom-bar";
 import { useLivePlan } from "./demo/live";
 import type { AchievementId } from "./demo/plan-model";
+import { AtlasDialog } from "./dialog";
 import { DemoAction, FRONT_DESK_NOTICE } from "./navigation";
-import type { ScreenKey } from "./screen-hrefs";
-import { AtlasLink } from "./ui";
+import { screenHref, type ScreenKey } from "./screen-hrefs";
+import { AtlasButton, AtlasLink, AtlasTextLink } from "./ui";
 
 /*
  * Stay · Profile — Figma frame 1:1542: the guest, their current stay, achievements, preferences
  * and app settings. Achievements and preferences come from the demo state. The language row is a
  * design state only: Georgian translation is a future integration, and the row says so rather
  * than relabelling an English interface. Calling the front desk is not connected either.
+ *
+ * SignOutConfirm (70:4020) is the same screen with the sign-out confirmation open. Signing out
+ * leaves the demo plan and achievements in this browser as they are, as the dialog says.
  */
 
 const ROW = "flex min-h-[48px] w-full items-center justify-between gap-[8px] text-left";
@@ -70,9 +75,17 @@ function Badge({ unlocked }: { unlocked: boolean }) {
   );
 }
 
-export function ProfileScreen() {
+export function ProfileScreen({ confirmSignOut = false }: { confirmSignOut?: boolean }) {
+  const router = useRouter();
   const live = useLivePlan();
   const [calling, setCalling] = useState(false);
+  const [signingOut, setSigningOut] = useState(confirmSignOut);
+
+  const closeSignOut = () => {
+    setSigningOut(false);
+    const href = screenHref("Stay");
+    if (confirmSignOut && href) router.replace(href);
+  };
   const unlockedCount = live.unlocked.length;
   const { preferences } = live.state;
 
@@ -142,9 +155,9 @@ export function ProfileScreen() {
         </AtlasLink>
 
         <Section title="Your preferences">
-          <SettingRow label="Interests" value={preferences.interests.join(", ") || "None chosen"} to="Preferences" />
-          <SettingRow label="Free time" value={preferences.time} to="Preferences" />
-          <SettingRow label="Price level" value={preferences.price} to="Preferences" divider={false} />
+          <SettingRow label="Interests" value={preferences.interests.join(", ") || "None chosen"} to="PrefsEdit" />
+          <SettingRow label="Free time" value={preferences.time} to="PrefsEdit" />
+          <SettingRow label="Price level" value={preferences.price} to="PrefsEdit" divider={false} />
         </Section>
 
         <Section title="App">
@@ -155,7 +168,7 @@ export function ProfileScreen() {
         </Section>
 
         <AtlasLink
-          to="SignIn"
+          to="SignOutConfirm"
           className="flex h-[48px] w-full items-center justify-center rounded-[12px] border border-atlas-beige font-manrope text-[15px] font-semibold leading-[20px] text-atlas-ink"
         >
           Sign out
@@ -172,6 +185,17 @@ export function ProfileScreen() {
       <div className="sticky bottom-0 z-10">
         <AtlasBottomBar active="profile" />
       </div>
+
+      <AtlasDialog open={signingOut} onClose={closeSignOut} labelledBy="sign-out-title" describedBy="sign-out-body">
+        <h2 id="sign-out-title" className="font-grotesk text-[20px] font-bold leading-[26px] text-atlas-ink">
+          Sign out of Atlas?
+        </h2>
+        <p id="sign-out-body" className="w-full font-manrope text-[14px] leading-[1.55] text-atlas-ink">
+          Your plan and achievements stay saved. You&apos;ll need to sign in again to see them.
+        </p>
+        <AtlasButton to="SignIn">Sign out</AtlasButton>
+        <AtlasTextLink onClick={closeSignOut}>Stay signed in</AtlasTextLink>
+      </AtlasDialog>
     </main>
   );
 }

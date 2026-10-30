@@ -1,7 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { setPreferences, useDemoState } from "./demo/demo-store";
-import { DAY_START, INTERESTS, PRICE_OPTIONS, TIME_OPTIONS, clock, hoursOf, type Interest } from "./demo/plan-model";
+import { DAY_START, INTERESTS, PRICE_OPTIONS, TIME_OPTIONS, clock, hoursOf, type Interest, type Preferences } from "./demo/plan-model";
+import { screenHref } from "./screen-hrefs";
 import { AtlasBackButton, AtlasButton, AtlasTextLink, type } from "./ui";
 
 /*
@@ -13,6 +16,10 @@ import { AtlasBackButton, AtlasButton, AtlasTextLink, type } from "./ui";
  * The choices are kept in the demo state, so Plan building, Plan ready, My plan and the context
  * header all use what the guest picked. "Plan my time" runs the prototype's planning model;
  * in the product this is where the request goes to the server.
+ *
+ * PrefsEdit · Edit preferences — Figma frame 70:3986 — is the same form opened from Profile
+ * (`mode="edit"`): choices stay a draft until "Save changes", so Cancel really discards them, and
+ * saving changes only future plans — today's plan is left as it is.
  */
 
 const OPTION =
@@ -53,29 +60,48 @@ function Segmented<T extends string>({
 
 const SECTION_TITLE = "font-grotesk text-[17px] font-bold leading-[22px] text-atlas-teal";
 
-export function PreferencesForm() {
-  const { preferences } = useDemoState();
+export function PreferencesForm({ mode = "plan" }: { mode?: "plan" | "edit" }) {
+  const router = useRouter();
+  const { preferences: saved } = useDemoState();
+  const [draft, setDraft] = useState<Preferences | null>(null);
+  const editing = mode === "edit";
+  const preferences = editing ? (draft ?? saved) : saved;
   const { time, interests, price } = preferences;
+  const update = editing ? setDraft : setPreferences;
 
   const toggleInterest = (interest: Interest) =>
-    setPreferences({
+    update({
       ...preferences,
       interests: interests.includes(interest) ? interests.filter((item) => item !== interest) : [...interests, interest],
     });
+
+  const save = () => {
+    if (draft) setPreferences(draft);
+    router.push(screenHref("Stay") ?? "/profile");
+  };
 
   return (
     <main className="relative flex min-h-[100dvh] w-full flex-col bg-atlas-paper">
       <div className="mx-auto flex w-full max-w-[640px] flex-1 flex-col items-start gap-[22px] px-[16px] pb-[24px] pt-[calc(16px+env(safe-area-inset-top))]">
         <div className="flex w-full items-center gap-[8px]">
-          <AtlasBackButton to="Main" />
-          <p className="font-manrope text-[13px] leading-[18px] text-atlas-slate">Hotel A</p>
+          <AtlasBackButton to={editing ? "Stay" : "Main"} />
+          <p className="font-manrope text-[13px] leading-[18px] text-atlas-slate">{editing ? "Profile" : "Hotel A"}</p>
         </div>
 
         <div className="flex w-full flex-col items-start gap-[6px]">
-          <h1 className={`w-full ${type.title}`}>Tell us when you&apos;re free.</h1>
-          <p className={`w-full ${type.body} text-atlas-slate`}>
-            We&apos;ll figure out what you can do with Hotel A and its approved partners.
-          </p>
+          {editing ? (
+            <>
+              <h1 className={`w-full ${type.title}`}>Edit preferences</h1>
+              <p className={`w-full ${type.body} text-atlas-slate`}>Changes apply to new plans. Your current plan stays as it is.</p>
+            </>
+          ) : (
+            <>
+              <h1 className={`w-full ${type.title}`}>Tell us when you&apos;re free.</h1>
+              <p className={`w-full ${type.body} text-atlas-slate`}>
+                We&apos;ll figure out what you can do with Hotel A and its approved partners.
+              </p>
+            </>
+          )}
         </div>
 
         <section className="flex w-full flex-col items-start gap-[10px]">
@@ -87,7 +113,7 @@ export function PreferencesForm() {
               name="time"
               options={TIME_OPTIONS}
               value={time}
-              onChange={(next) => setPreferences({ ...preferences, time: next })}
+              onChange={(next) => update({ ...preferences, time: next })}
               labelId="pref-time"
               textClass="text-[15px] leading-[20px]"
             />
@@ -131,7 +157,7 @@ export function PreferencesForm() {
             name="price"
             options={PRICE_OPTIONS}
             value={price}
-            onChange={(next) => setPreferences({ ...preferences, price: next })}
+            onChange={(next) => update({ ...preferences, price: next })}
             labelId="pref-price"
             textClass="text-[13px] leading-[18px]"
           />
@@ -143,12 +169,25 @@ export function PreferencesForm() {
 
       <div className="sticky bottom-0 z-10 border-t border-atlas-beige bg-atlas-paper">
         <div className="mx-auto flex h-[139px] w-full max-w-[640px] flex-col items-start gap-[6px] px-[16px] pb-[calc(20px+env(safe-area-inset-bottom))] pt-[12px] short:h-auto short:flex-row short:items-center short:pb-[calc(10px+env(safe-area-inset-bottom))] short:pt-[10px]">
-          <AtlasButton to="PlanBuild" className="short:flex-1">
-            Plan my time
-          </AtlasButton>
-          <AtlasTextLink to="Main" className="short:w-auto short:px-[12px]">
-            Just show me places
-          </AtlasTextLink>
+          {editing ? (
+            <>
+              <AtlasButton onClick={save} className="short:flex-1">
+                Save changes
+              </AtlasButton>
+              <AtlasTextLink to="Stay" className="short:w-auto short:px-[12px]">
+                Cancel
+              </AtlasTextLink>
+            </>
+          ) : (
+            <>
+              <AtlasButton to="PlanBuild" className="short:flex-1">
+                Plan my time
+              </AtlasButton>
+              <AtlasTextLink to="Main" className="short:w-auto short:px-[12px]">
+                Just show me places
+              </AtlasTextLink>
+            </>
+          )}
         </div>
       </div>
     </main>

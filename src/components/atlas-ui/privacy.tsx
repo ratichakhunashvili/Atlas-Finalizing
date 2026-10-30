@@ -7,7 +7,7 @@ import { resetDemo } from "./demo/demo-store";
 import { AtlasDialog } from "./dialog";
 import { DemoAction, FRONT_DESK_NOTICE } from "./navigation";
 import { screenHref, type ScreenKey } from "./screen-hrefs";
-import { AtlasBackButton, AtlasButton, AtlasPoints, AtlasTextLink } from "./ui";
+import { AtlasBackButton, AtlasPoints, AtlasTextLink } from "./ui";
 
 /*
  * Privacy (1:1303), PrivacyPublic (1:2888) and PrivacyDelete (1:1357). The signed-in screen adds
@@ -96,11 +96,9 @@ function Screen({ back, children }: { back: ScreenKey; children: ReactNode }) {
 export function PrivacyScreen({ confirmDelete = false }: { confirmDelete?: boolean }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(confirmDelete);
-  const [deleted, setDeleted] = useState(false);
 
   const close = () => {
     setConfirming(false);
-    setDeleted(false);
     const href = screenHref("Privacy");
     if (confirmDelete && href) router.replace(href);
   };
@@ -148,17 +146,7 @@ export function PrivacyScreen({ confirmDelete = false }: { confirmDelete?: boole
         <h2 id="delete-title" className="font-grotesk text-[20px] font-bold leading-[26px] text-atlas-ink">
           Delete your Atlas account?
         </h2>
-        {deleted ? (
-          <>
-            <p id="delete-body" role="status" className="w-full font-manrope text-[15px] leading-[23px] text-atlas-ink">
-              This prototype has no accounts, so no account was deleted. The demo plan and achievements kept in this browser were
-              reset.
-            </p>
-            <AtlasButton to="Welcome">Back to Welcome</AtlasButton>
-            <AtlasTextLink onClick={close}>Close</AtlasTextLink>
-          </>
-        ) : (
-          <>
+        <>
             <p id="delete-body" className="w-full font-manrope text-[15px] leading-[23px] text-atlas-ink">
               Your plans and achievements will be removed. This cannot be undone. Your hotel booking is not affected.
             </p>
@@ -166,15 +154,15 @@ export function PrivacyScreen({ confirmDelete = false }: { confirmDelete?: boole
               type="button"
               onClick={() => {
                 resetDemo();
-                setDeleted(true);
+                const href = screenHref("AccountDeleted");
+                if (href) router.push(href);
               }}
               className="flex h-[52px] w-full items-center justify-center rounded-[14px] bg-atlas-danger font-manrope text-[16px] font-semibold leading-[22px] text-white"
             >
               Delete account
             </button>
             <AtlasTextLink onClick={close}>Keep my account</AtlasTextLink>
-          </>
-        )}
+        </>
       </AtlasDialog>
     </>
   );

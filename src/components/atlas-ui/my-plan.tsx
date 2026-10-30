@@ -28,7 +28,7 @@ const DOT = "flex size-[28px] shrink-0 items-center justify-center rounded-[14px
 const SMALL_BUTTON =
   "flex h-[44px] shrink-0 items-center justify-center rounded-[12px] border border-atlas-teal px-[12px] font-manrope text-[13px] font-semibold leading-[18px] text-atlas-teal";
 
-function Row({ dot, line, children, padded = true }: { dot: ReactNode; line?: "teal" | "beige"; children: ReactNode; padded?: boolean }) {
+export function Row({ dot, line, children, padded = true }: { dot: ReactNode; line?: "teal" | "beige"; children: ReactNode; padded?: boolean }) {
   return (
     <li className={`flex w-full items-start gap-[10px] ${padded ? "pb-[12px]" : ""}`}>
       <div aria-hidden className="flex w-[28px] shrink-0 flex-col items-center self-stretch">
@@ -40,7 +40,7 @@ function Row({ dot, line, children, padded = true }: { dot: ReactNode; line?: "t
   );
 }
 
-function NumberDot({ n, tone = "teal" }: { n: number; tone?: "teal" | "dashed" }) {
+export function NumberDot({ n, tone = "teal" }: { n: number; tone?: "teal" | "dashed" }) {
   return (
     <div
       className={`${DOT} border-2 font-manrope text-[13px] font-semibold leading-[18px] ${
@@ -52,7 +52,7 @@ function NumberDot({ n, tone = "teal" }: { n: number; tone?: "teal" | "dashed" }
   );
 }
 
-function StopName({ stop, className }: { stop: TimedStop; className: string }) {
+export function StopName({ stop, className }: { stop: TimedStop; className: string }) {
   const detail = DETAIL_SCREEN[stop.id];
   const name = STOPS[stop.id].name;
   return detail ? (
@@ -64,16 +64,22 @@ function StopName({ stop, className }: { stop: TimedStop; className: string }) {
   );
 }
 
-function stopMeta(stop: TimedStop, previous: number): string {
+export function stopMeta(stop: TimedStop, previous: number): string {
   const fixture = STOPS[stop.id];
   if (fixture.kind === "facility") return `In Hotel A · ${fixture.visit} min`;
   return previous > 1 ? `${stop.walk} min from stop ${previous} · ${fixture.visit} min` : `${stop.walk} min walk · ${fixture.visit} min`;
 }
 
+/** The next stop's line: "11 min walk · 60 min visit". */
+export function nextStopMeta(stop: TimedStop): string {
+  const fixture = STOPS[stop.id];
+  return fixture.kind === "facility" ? `In Hotel A · ${fixture.visit} min visit` : `${stop.walk} min walk · ${fixture.visit} min visit`;
+}
+
 function NextStop({ stop }: { stop: TimedStop }) {
   const fixture = STOPS[stop.id];
   const route = ROUTE_SCREEN[stop.id];
-  const meta = fixture.kind === "facility" ? `In Hotel A · ${fixture.visit} min visit` : `${stop.walk} min walk · ${fixture.visit} min visit`;
+  const meta = nextStopMeta(stop);
   return (
     <Row dot={<NumberDot n={stop.position} />} line="beige">
       <div className="flex min-w-0 flex-1 flex-col items-start gap-[8px] rounded-[14px] border-2 border-atlas-teal p-[10px]">
@@ -120,7 +126,65 @@ function LaterStop({ stop, previous }: { stop: TimedStop; previous: number }) {
   );
 }
 
-function UnavailableStop({ stop }: { stop: TimedStop }) {
+/** First and last rows of the timeline: leaving Hotel A and walking back. */
+export function StartRow() {
+  return (
+    <Row
+      padded={false}
+      line="teal"
+      dot={
+        <div className={`${DOT} bg-atlas-teal`}>
+          <AtlasIcon src="/atlas-ui/icon-home-light-14.svg" size={14} />
+        </div>
+      }
+    >
+      <p className="min-w-0 flex-1 pb-[12px] pt-[4px] font-manrope text-[14px] leading-[19px] text-atlas-ink">
+        <span className="font-semibold">Start at Hotel A</span> · 16:00
+      </p>
+    </Row>
+  );
+}
+
+export function ReturnRow({ at }: { at: number }) {
+  return (
+    <Row
+      padded={false}
+      dot={
+        <div className={`${DOT} border-2 border-atlas-teal bg-atlas-paper`}>
+          <AtlasIcon src="/atlas-ui/icon-home-teal-14.svg" size={14} />
+        </div>
+      }
+    >
+      <p className="min-w-0 flex-1 pt-[4px] font-manrope text-[14px] leading-[19px] text-atlas-ink">
+        <span className="font-semibold">Back to Hotel A</span> · around {clock(at)}
+      </p>
+    </Row>
+  );
+}
+
+export function DoneStop({ stop }: { stop: TimedStop }) {
+  const hasAchievement = Boolean(STOPS[stop.id].achievement);
+  return (
+    <Row
+      padded={false}
+      line="beige"
+      dot={
+        <div className={`${DOT} bg-atlas-teal`}>
+          <AtlasIcon src="/atlas-ui/icon-check-light-14.svg" size={14} />
+        </div>
+      }
+    >
+      <div className="flex min-w-0 flex-1 flex-col items-start gap-px pb-[12px] text-left">
+        <StopName stop={stop} className="font-grotesk text-[16px] font-bold leading-[20px] text-atlas-teal" />
+        <span className="w-full font-manrope text-[12px] leading-[16px] text-atlas-slate">
+          Checked in {clock(stop.checkedInAt ?? 0)} · {hasAchievement ? "achievement unlocked" : "visited"}
+        </span>
+      </div>
+    </Row>
+  );
+}
+
+export function UnavailableStop({ stop }: { stop: TimedStop }) {
   return (
     <Row dot={<NumberDot n={stop.position} tone="dashed" />} line="beige">
       <div className="flex min-w-0 flex-1 items-center gap-[10px] rounded-[14px] bg-atlas-sand p-[10px]">
@@ -297,43 +361,10 @@ function Plan({ state }: { state: DemoState }) {
 
         <div data-area="list" className="flex w-full flex-col items-start gap-[12px]">
           <ol aria-label="Today's stops" className="flex w-full flex-col items-start">
-            <Row
-              padded={false}
-              line="teal"
-              dot={
-                <div className={`${DOT} bg-atlas-teal`}>
-                  <AtlasIcon src="/atlas-ui/icon-home-light-14.svg" size={14} />
-                </div>
-              }
-            >
-              <p className="min-w-0 flex-1 pb-[12px] pt-[4px] font-manrope text-[14px] leading-[19px] text-atlas-ink">
-                <span className="font-semibold">Start at Hotel A</span> · 16:00
-              </p>
-            </Row>
+            <StartRow />
 
             {timing.stops.map((stop) => {
-              if (stop.status === "done") {
-                const hasAchievement = Boolean(STOPS[stop.id].achievement);
-                return (
-                  <Row
-                    key={stop.id}
-                    padded={false}
-                    line="beige"
-                    dot={
-                      <div className={`${DOT} bg-atlas-teal`}>
-                        <AtlasIcon src="/atlas-ui/icon-check-light-14.svg" size={14} />
-                      </div>
-                    }
-                  >
-                    <div className="flex min-w-0 flex-1 flex-col items-start gap-px pb-[12px] text-left">
-                      <StopName stop={stop} className="font-grotesk text-[16px] font-bold leading-[20px] text-atlas-teal" />
-                      <span className="w-full font-manrope text-[12px] leading-[16px] text-atlas-slate">
-                        Checked in {clock(stop.checkedInAt ?? 0)} · {hasAchievement ? "achievement unlocked" : "visited"}
-                      </span>
-                    </div>
-                  </Row>
-                );
-              }
+              if (stop.status === "done") return <DoneStop key={stop.id} stop={stop} />;
               if (stop.status === "unavailable") return <UnavailableStop key={stop.id} stop={stop} />;
               return stop.status === "next" ? (
                 <NextStop key={stop.id} stop={stop} />
@@ -342,18 +373,7 @@ function Plan({ state }: { state: DemoState }) {
               );
             })}
 
-            <Row
-              padded={false}
-              dot={
-                <div className={`${DOT} border-2 border-atlas-teal bg-atlas-paper`}>
-                  <AtlasIcon src="/atlas-ui/icon-home-teal-14.svg" size={14} />
-                </div>
-              }
-            >
-              <p className="min-w-0 flex-1 pt-[4px] font-manrope text-[14px] leading-[19px] text-atlas-ink">
-                <span className="font-semibold">Back to Hotel A</span> · around {clock(timing.returnAt)}
-              </p>
-            </Row>
+            <ReturnRow at={timing.returnAt} />
           </ol>
           <p className="w-full font-manrope text-[12px] leading-[16px] text-atlas-slate">
             Prototype: this plan is kept in this browser only, not in an Atlas account.
